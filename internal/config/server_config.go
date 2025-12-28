@@ -6,12 +6,12 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
-type ClientConfig struct {
+type ServerConfig struct {
 	ServerAddress string `env:"SERVER_ADDRESS"`
 }
 
-func NewClientConfig() *ClientConfig {
-	var cfg ClientConfig
+func NewServerConfig() *ServerConfig {
+	var cfg ServerConfig
 	_ = env.Parse(&cfg)
 
 	clientFlags := flag.NewFlagSet("server", flag.ExitOnError)
