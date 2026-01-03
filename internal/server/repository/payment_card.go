@@ -2,8 +2,12 @@ package repository
 
 import "gophkeeper/internal/model"
 
+type PaymentCardRepository interface {
+	GetPaymentCards() ([]model.PaymentCard, error)
+	AddPaymentCard(paymentCard model.PaymentCard) error
+}
+
 // PaymentCardBD - банковские карты пользователя
-// Поддерживает интерфейс PaymentCardRepository
 type PaymentCardBD struct {
 	PaymentCards []model.PaymentCard
 }

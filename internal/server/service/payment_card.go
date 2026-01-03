@@ -5,6 +5,10 @@ import (
 	"gophkeeper/internal/server/repository"
 )
 
+type PaymentCardService interface {
+	GetPaymentCards() ([]model.PaymentCard, error)
+}
+
 type paymentCardService struct {
 	PaymentCardRepository repository.PaymentCardRepository
 }

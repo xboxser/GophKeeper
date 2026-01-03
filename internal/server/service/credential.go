@@ -5,6 +5,10 @@ import (
 	"gophkeeper/internal/server/repository"
 )
 
+type CredentialService interface {
+	GetCredentials() ([]model.Credential, error)
+}
+
 type credentialService struct {
 	credentialRepository repository.CredentialRepository
 }
