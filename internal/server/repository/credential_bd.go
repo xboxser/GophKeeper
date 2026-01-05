@@ -1,6 +1,9 @@
 package repository
 
-import "gophkeeper/internal/model"
+import (
+	"gophkeeper/internal/model"
+	"gophkeeper/internal/server/db"
+)
 
 type CredentialRepository interface {
 	GetCredentials() ([]model.Credential, error)
@@ -8,11 +11,14 @@ type CredentialRepository interface {
 }
 
 type CredentialBD struct {
+	DB          db.DB
 	Credentials []model.Credential
 }
 
-func NewCredentialBD() *CredentialBD {
+func NewCredentialBD(db db.DB) *CredentialBD {
+
 	return &CredentialBD{
+		DB: db,
 		Credentials: []model.Credential{
 			{Login: "test", Password: "test"},
 		},

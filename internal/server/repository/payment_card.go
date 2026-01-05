@@ -1,6 +1,9 @@
 package repository
 
-import "gophkeeper/internal/model"
+import (
+	"gophkeeper/internal/model"
+	"gophkeeper/internal/server/db"
+)
 
 type PaymentCardRepository interface {
 	GetPaymentCards() ([]model.PaymentCard, error)
@@ -9,11 +12,13 @@ type PaymentCardRepository interface {
 
 // PaymentCardBD - банковские карты пользователя
 type PaymentCardBD struct {
+	DB           db.DB
 	PaymentCards []model.PaymentCard
 }
 
-func NewPaymentCardBD() *PaymentCardBD {
+func NewPaymentCardBD(db db.DB) *PaymentCardBD {
 	return &PaymentCardBD{
+		DB: db,
 		PaymentCards: []model.PaymentCard{
 			{
 				CVV:        "123",

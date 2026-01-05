@@ -8,3 +8,6 @@ testPC:
 	go test -v -coverprofile=coverage.out ./...
 	go tool cover -func=coverage.out | grep "total:"
 	rm coverage.out
+
+stopPG:
+	sudo systemctl stop postgresql
