@@ -1,0 +1,70 @@
+package service
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"gophkeeper/internal/client/repository"
+	"gophkeeper/internal/model"
+	"time"
+)
+
+type UserService interface {
+	Register(login, password string) (string, error)
+	InitToken(TokenService)
+}
+
+type userService struct {
+	UserRepository repository.UserRepository
+	SenderService  SenderService
+	TokenService   TokenService
+}
+
+func NewUserService(userRepository repository.UserRepository, sender SenderService) *userService {
+	return &userService{
+		UserRepository: userRepository,
+		SenderService:  sender,
+		TokenService:   nil,
+	}
+}
+
+// InitToken - добавляем сервис токена для работы с ним
+func (s *userService) InitToken(tokenService TokenService) {
+	s.TokenService = tokenService
+}
+
+func (s *userService) Register(login, password string) (string, error) {
+	user := model.APIUser{
+		Login:    login,
+		Password: password,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	json, err := json.Marshal(user)
+	if err != nil {
+		return "", err
+	}
+
+	body, response, err := s.SenderService.SendPost(ctx, "/api/user/register", json)
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println("body: ", string(body))
+	fmt.Printf("status request: %s\n", response.Status)
+	fmt.Printf("token: %s\n", response.Header.Get("Authorization"))
+
+	token := response.Header.Get("Authorization")
+	if token == "" {
+		return "", errors.New("empty token service")
+	}
+
+	if s.TokenService != nil {
+		s.TokenService.SetToken(token)
+	}
+
+	return token, nil
+}

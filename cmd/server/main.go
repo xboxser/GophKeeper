@@ -14,6 +14,8 @@ import (
 )
 
 func main() {
+	// TODO добавить логер
+
 	cfg := config.NewServerConfig()
 	fmt.Println("Start server", cfg.ServerAddress)
 
@@ -24,16 +26,23 @@ func main() {
 	}
 	defer db.Close()
 
+	// Получаем все объекты для User - пользователи
+	userRepository := repository.NewUserDB(db)
+	userService := service.NewUserService(userRepository)
+	userHandler := route.NewUserHandler(userService)
+
 	// Получаем все объекты для Credential - учетные данные пользователя
-	credentialRepository := repository.NewCredentialBD(db)
+	credentialRepository := repository.NewCredentialDB(db)
 	credentialService := service.NewCredentialService(credentialRepository)
 	credentialHandler := route.NewCredentialHandler(credentialService)
 
-	paymentCardRepository := repository.NewPaymentCardBD(db)
+	paymentCardRepository := repository.NewPaymentCardDB(db)
 	paymentCardService := service.NewPaymentCardService(paymentCardRepository)
 	paymentCardHandler := route.NewPaymentCardHandler(paymentCardService)
 
 	chiHandler := handler.NewChiHandler()
+	// добавляем созданные роуты  в основной обработчики
+	chiHandler.AddRoutes(userHandler)
 	chiHandler.AddRoutes(credentialHandler)
 	chiHandler.AddRoutes(paymentCardHandler)
 
@@ -42,7 +51,6 @@ func main() {
 		Handler: chiHandler.Router,
 	}
 
-	fmt.Println("HTTP server started on :8080")
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("HTTP server failed: %v", err)
 	}

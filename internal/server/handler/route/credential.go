@@ -21,7 +21,7 @@ func NewCredentialHandler(credentialService service.CredentialService) *Credenti
 // Routes - поддерживает интерфейс RouteChi
 func (ch *CredentialHandler) Routes() chi.Router {
 	r := chi.NewRouter()
-	r.Get("/", ch.GetCredentials)
+	r.Get("/", ch.getCredentials)
 	return r
 }
 
@@ -30,7 +30,7 @@ func (ch *CredentialHandler) Pattern() string {
 	return "/api/credentials"
 }
 
-func (ch *CredentialHandler) GetCredentials(w http.ResponseWriter, r *http.Request) {
+func (ch *CredentialHandler) getCredentials(w http.ResponseWriter, r *http.Request) {
 	credentials, err := ch.CredentialService.GetCredentials()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

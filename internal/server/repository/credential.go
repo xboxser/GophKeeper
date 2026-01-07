@@ -7,17 +7,17 @@ import (
 
 type CredentialRepository interface {
 	GetCredentials() ([]model.Credential, error)
-	AddCredential(credential model.Credential) error
+	AddCredential(model.Credential) error
 }
 
-type CredentialBD struct {
+type CredentialDB struct {
 	DB          db.DB
 	Credentials []model.Credential
 }
 
-func NewCredentialBD(db db.DB) *CredentialBD {
+func NewCredentialDB(db db.DB) *CredentialDB {
 
-	return &CredentialBD{
+	return &CredentialDB{
 		DB: db,
 		Credentials: []model.Credential{
 			{Login: "test", Password: "test"},
@@ -25,11 +25,11 @@ func NewCredentialBD(db db.DB) *CredentialBD {
 	}
 }
 
-func (c *CredentialBD) GetCredentials() ([]model.Credential, error) {
+func (c *CredentialDB) GetCredentials() ([]model.Credential, error) {
 	return c.Credentials, nil
 }
 
-func (c *CredentialBD) AddCredential(credential model.Credential) error {
+func (c *CredentialDB) AddCredential(credential model.Credential) error {
 	c.Credentials = append(c.Credentials, credential)
 	return nil
 }

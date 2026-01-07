@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"gophkeeper/internal/client/handler/command"
 	"gophkeeper/internal/client/service"
 
 	"github.com/spf13/cobra"
@@ -11,7 +12,6 @@ type Cli struct {
 }
 
 func NewCli(credentialService service.CredentialService) *Cli {
-	// DI: Repository → Service → Handlers → Commands
 
 	clientCmd := &cobra.Command{
 		Use:   "todo",
@@ -21,26 +21,16 @@ func NewCli(credentialService service.CredentialService) *Cli {
 		Version: "1.0.0",
 	}
 
-	credentialHandler := NewCredentialHandler(credentialService)
-	// Команда add
-	addCmd := &cobra.Command{
-		Use:   "addCredential",
-		Short: "Добавить новую задачу",
-		Example: `  todo addCredential --login "userName" --password "password"
-  todo add --text "Позвонить маме"`,
-		Run: credentialHandler.AddCredential,
-	}
-	addCmd.Flags().StringP("login", "l", "", "Логин (обязательный)")
-	addCmd.MarkFlagRequired("login")
-	addCmd.Flags().StringP("password", "p", "", "Пароль (обязательный)")
-	addCmd.MarkFlagRequired("password")
-
-	// Собираем дерево команд
-	clientCmd.AddCommand(addCmd)
-
 	return &Cli{ClientCmd: clientCmd}
 }
 
+// AddCommand - Собираем дерево команд
+func (cli *Cli) AddCommand(cobraCommand command.CobraCommand) {
+	commands := cobraCommand.GetCommands()
+	cli.ClientCmd.AddCommand(commands...)
+}
+
+// Run - запускает cli клиент
 func (cli *Cli) Run() error {
 	return cli.ClientCmd.Execute()
 }

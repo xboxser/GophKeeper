@@ -11,11 +11,13 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type DB interface {
 	Close()
+	Query(context.Context, string, ...any) (pgx.Rows, error)
 }
 
 type DBPgx struct {
@@ -56,6 +58,10 @@ func NewDBPgx(ctx context.Context, cfg config.ServerConfig) (*DBPgx, error) {
 
 func (db *DBPgx) Close() {
 	db.pool.Close()
+}
+
+func (db *DBPgx) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
+	return db.pool.Query(ctx, sql, args...)
 }
 
 //go:embed migrations/*.sql

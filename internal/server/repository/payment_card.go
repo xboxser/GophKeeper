@@ -10,14 +10,14 @@ type PaymentCardRepository interface {
 	AddPaymentCard(paymentCard model.PaymentCard) error
 }
 
-// PaymentCardBD - банковские карты пользователя
-type PaymentCardBD struct {
+// PaymentCardDB - банковские карты пользователя
+type PaymentCardDB struct {
 	DB           db.DB
 	PaymentCards []model.PaymentCard
 }
 
-func NewPaymentCardBD(db db.DB) *PaymentCardBD {
-	return &PaymentCardBD{
+func NewPaymentCardDB(db db.DB) *PaymentCardDB {
+	return &PaymentCardDB{
 		DB: db,
 		PaymentCards: []model.PaymentCard{
 			{
@@ -30,11 +30,11 @@ func NewPaymentCardBD(db db.DB) *PaymentCardBD {
 	}
 }
 
-func (p *PaymentCardBD) GetPaymentCards() ([]model.PaymentCard, error) {
+func (p *PaymentCardDB) GetPaymentCards() ([]model.PaymentCard, error) {
 	return p.PaymentCards, nil
 }
 
-func (p *PaymentCardBD) AddPaymentCard(paymentCard model.PaymentCard) error {
+func (p *PaymentCardDB) AddPaymentCard(paymentCard model.PaymentCard) error {
 	p.PaymentCards = append(p.PaymentCards, paymentCard)
 	return nil
 }

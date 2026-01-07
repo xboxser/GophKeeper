@@ -15,7 +15,7 @@ func NewClientConfig() *ClientConfig {
 	_ = env.Parse(&cfg)
 
 	clientFlags := flag.NewFlagSet("server", flag.ExitOnError)
-	serverAddress := clientFlags.String("a", "localhost:8018", "адрес и порт сервера")
+	serverAddress := clientFlags.String("a", "http://localhost:8018", "адрес и порт сервера")
 
 	if cfg.ServerAddress == "" {
 		cfg.ServerAddress = *serverAddress

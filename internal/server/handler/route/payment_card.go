@@ -20,14 +20,14 @@ func NewPaymentCardHandler(paymentCardService service.PaymentCardService) *Payme
 
 func (ph *PaymentCardHandler) Routes() chi.Router {
 	r := chi.NewRouter()
-	r.Get("/", ph.GetPaymentCards)
+	r.Get("/", ph.getPaymentCards)
 	return r
 }
 func (ph *PaymentCardHandler) Pattern() string {
 	return "/api/payment_cards"
 }
 
-func (ph *PaymentCardHandler) GetPaymentCards(w http.ResponseWriter, r *http.Request) {
+func (ph *PaymentCardHandler) getPaymentCards(w http.ResponseWriter, r *http.Request) {
 	paymentCards, err := ph.PaymentCardService.GetPaymentCards()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
