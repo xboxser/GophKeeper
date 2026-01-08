@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"gophkeeper/internal/model"
 	"gophkeeper/internal/server/repository"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
-	Register(context.Context, model.APIUser) (int, error)
+	Register(context.Context, model.APIUser) (string, error)
+	Login(context.Context, model.APIUser) (string, error)
 }
 
 type userService struct {
@@ -22,22 +25,51 @@ func NewUserService(userRepository repository.UserRepository) *userService {
 }
 
 // Register - сервис регистрации пользователя
-func (u *userService) Register(ctx context.Context, apiUser model.APIUser) (int, error) {
+func (u *userService) Register(ctx context.Context, apiUser model.APIUser) (string, error) {
 	user, err := u.UserRepository.GetUserForLogin(ctx, apiUser.Login)
 
 	if err != nil {
-		return 0, err
+		return "", err
 	}
 
 	// Пользователь уже зарегистрирован
 	if user.ID != 0 {
-		return 0, model.ErrLoginBusy
+		return "", model.ErrLoginBusy
 	}
 
 	userID, err := u.UserRepository.RegisterUser(ctx, apiUser.Login, apiUser.Password)
 	if err != nil {
-		return 0, fmt.Errorf("error registering user: %w", err)
+		return "", fmt.Errorf("error registering user: %w", err)
 	}
 
-	return userID, nil
+	token, err := BuildJWTString(userID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func (u *userService) Login(ctx context.Context, apiUser model.APIUser) (string, error) {
+	user, err := u.UserRepository.GetUserForLogin(ctx, apiUser.Login)
+
+	if err != nil {
+		return "", err
+	}
+
+	if user.ID == 0 {
+		return "", model.ErrLoginIncorrect
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(apiUser.Password))
+	if err != nil {
+		return "", model.ErrLoginIncorrect
+	}
+
+	token, err := BuildJWTString(user.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }

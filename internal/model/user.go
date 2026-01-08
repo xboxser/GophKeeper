@@ -3,8 +3,9 @@ package model
 import "errors"
 
 var (
-	ErrRegisterUser = errors.New("error registering user")
-	ErrLoginBusy    = errors.New("login is busy")
+	ErrRegisterUser   = errors.New("error registering user")
+	ErrLoginBusy      = errors.New("login is busy")
+	ErrLoginIncorrect = errors.New("incorrect password or login")
 )
 
 type User struct {

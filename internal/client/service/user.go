@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"gophkeeper/internal/client/repository"
 	"gophkeeper/internal/model"
+	"net/http"
 	"time"
 )
 
 type UserService interface {
 	Register(login, password string) (string, error)
+	Login(login, password string) (string, error)
 	InitToken(TokenService)
 }
 
@@ -67,4 +69,45 @@ func (s *userService) Register(login, password string) (string, error) {
 	}
 
 	return token, nil
+}
+
+func (s *userService) Login(login, password string) (string, error) {
+	user := model.APIUser{
+		Login:    login,
+		Password: password,
+	}
+
+	json, err := json.Marshal(user)
+	if err != nil {
+		return "", err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, response, err := s.SenderService.SendPost(ctx, "/api/user/login", json)
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Println("body: ", string(body))
+	fmt.Printf("status request: %s\n", response.Status)
+	fmt.Printf("token: %s\n", response.Header.Get("Authorization"))
+
+	token := response.Header.Get("Authorization")
+
+	if response.StatusCode == http.StatusUnauthorized {
+		return "", model.ErrLoginIncorrect
+	}
+
+	if token == "" {
+		return "", errors.New("empty token service")
+	}
+
+	if s.TokenService != nil {
+		s.TokenService.SetToken(token)
+	}
+
+	return token, nil
+
 }
