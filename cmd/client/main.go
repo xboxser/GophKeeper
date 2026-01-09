@@ -21,7 +21,8 @@ func main() {
 	tokenService := service.NewTokenService(tokenRep)
 
 	credentialRep := repository.NewCredentialMem()
-	credentialService := service.NewCredentialService(credentialRep)
+	credentialService := service.NewCredentialService(credentialRep, senderService)
+	credentialService.InitToken(tokenService)
 	credentialHandler := command.NewCredentialHandler(credentialService)
 
 	userRepository := repository.NewUserRepository()

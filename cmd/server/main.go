@@ -6,6 +6,7 @@ import (
 	"gophkeeper/internal/config"
 	"gophkeeper/internal/server/db"
 	"gophkeeper/internal/server/handler"
+	"gophkeeper/internal/server/handler/middleware"
 	"gophkeeper/internal/server/handler/route"
 	"gophkeeper/internal/server/repository"
 	"gophkeeper/internal/server/service"
@@ -31,10 +32,13 @@ func main() {
 	userService := service.NewUserService(userRepository)
 	userHandler := route.NewUserHandler(userService)
 
+	// формируем middleware для обработки нужных запросов
+	tokenMiddleware := middleware.NewTokenMiddleware(userService)
+
 	// Получаем все объекты для Credential - учетные данные пользователя
 	credentialRepository := repository.NewCredentialDB(db)
 	credentialService := service.NewCredentialService(credentialRepository)
-	credentialHandler := route.NewCredentialHandler(credentialService)
+	credentialHandler := route.NewCredentialHandler(credentialService, tokenMiddleware)
 
 	paymentCardRepository := repository.NewPaymentCardDB(db)
 	paymentCardService := service.NewPaymentCardService(paymentCardRepository)
@@ -51,6 +55,7 @@ func main() {
 		Handler: chiHandler.Router,
 	}
 
+	// TODO запустить сервер в отдельном потоке
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("HTTP server failed: %v", err)
 	}

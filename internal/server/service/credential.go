@@ -1,12 +1,14 @@
 package service
 
 import (
+	"context"
 	"gophkeeper/internal/model"
 	"gophkeeper/internal/server/repository"
 )
 
 type CredentialService interface {
-	GetCredentials() ([]model.Credential, error)
+	GetCredentials(ctx context.Context, userID int) ([]model.Credential, error)
+	AddCredential(ctx context.Context, credential model.Credential, userID int) error
 }
 
 type credentialService struct {
@@ -19,6 +21,11 @@ func NewCredentialService(credentialRepository repository.CredentialRepository) 
 	}
 }
 
-func (s *credentialService) GetCredentials() ([]model.Credential, error) {
-	return s.credentialRepository.GetCredentials()
+func (s *credentialService) GetCredentials(ctx context.Context, userID int) ([]model.Credential, error) {
+	return s.credentialRepository.GetCredentials(ctx, userID)
+}
+
+func (s *credentialService) AddCredential(ctx context.Context, credential model.Credential, userID int) error {
+	return s.credentialRepository.AddCredential(ctx, credential, userID)
+
 }

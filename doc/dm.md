@@ -7,12 +7,13 @@ config:
 ---
 erDiagram
 	direction TB
-	account_password {
+	credentials {
 		int id PK ""  
-                int user_id FK ""  
+        int user_id FK ""  
 		string password  ""  
         string login  ""  
-
+		datetime created_at  ""  
+		datetime uploaded_at  ""  
 	}
 	users {
 		int id PK ""  
@@ -36,7 +37,7 @@ erDiagram
         int user_id FK ""
         string path "путь до файла на сервере"
     }
-	account_password}|--||users:"  "
+	credentials}|--||users:"  "
     payment_cards}|--||users:"  "
     file}|--||users:"  "
 

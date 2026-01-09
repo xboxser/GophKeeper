@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"gophkeeper/internal/client/repository"
 	"gophkeeper/internal/model"
 	"net/http"
@@ -50,14 +49,10 @@ func (s *userService) Register(login, password string) (string, error) {
 		return "", err
 	}
 
-	body, response, err := s.SenderService.SendPost(ctx, "/api/user/register", json)
+	_, response, err := s.SenderService.SendPost(ctx, "/api/user/register", json)
 	if err != nil {
 		return "", err
 	}
-
-	fmt.Println("body: ", string(body))
-	fmt.Printf("status request: %s\n", response.Status)
-	fmt.Printf("token: %s\n", response.Header.Get("Authorization"))
 
 	token := response.Header.Get("Authorization")
 	if token == "" {
@@ -85,14 +80,10 @@ func (s *userService) Login(login, password string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	body, response, err := s.SenderService.SendPost(ctx, "/api/user/login", json)
+	_, response, err := s.SenderService.SendPost(ctx, "/api/user/login", json)
 	if err != nil {
 		return "", err
 	}
-
-	fmt.Println("body: ", string(body))
-	fmt.Printf("status request: %s\n", response.Status)
-	fmt.Printf("token: %s\n", response.Header.Get("Authorization"))
 
 	token := response.Header.Get("Authorization")
 

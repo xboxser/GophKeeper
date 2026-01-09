@@ -12,6 +12,7 @@ import (
 type UserService interface {
 	Register(context.Context, model.APIUser) (string, error)
 	Login(context.Context, model.APIUser) (string, error)
+	GetUserForID(context.Context, int) (model.User, error)
 }
 
 type userService struct {
@@ -72,4 +73,12 @@ func (u *userService) Login(ctx context.Context, apiUser model.APIUser) (string,
 	}
 
 	return token, nil
+}
+
+func (u *userService) GetUserForID(ctx context.Context, userID int) (model.User, error) {
+	user, err := u.UserRepository.GetUserForID(ctx, userID)
+	if err != nil {
+		return model.User{}, err
+	}
+	return user, nil
 }

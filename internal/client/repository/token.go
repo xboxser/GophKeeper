@@ -23,6 +23,11 @@ func (t *tokenRepository) GetToken() (string, error) {
 		return "", fmt.Errorf("Не удалось прочитать токен: %v", err)
 	}
 	token := string(data)
+
+	if token == "" {
+		return "", fmt.Errorf("Пустой  токен, требуется авторизация")
+	}
+
 	return token, nil
 }
 

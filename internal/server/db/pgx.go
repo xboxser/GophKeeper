@@ -12,12 +12,14 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type DB interface {
 	Close()
 	Query(context.Context, string, ...any) (pgx.Rows, error)
+	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
 }
 
 type DBPgx struct {
@@ -62,6 +64,11 @@ func (db *DBPgx) Close() {
 
 func (db *DBPgx) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error) {
 	return db.pool.Query(ctx, sql, args...)
+}
+
+// Exec - для запросов без возвращаемой информации
+func (db *DBPgx) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
+	return db.pool.Exec(ctx, sql, args...)
 }
 
 //go:embed migrations/*.sql

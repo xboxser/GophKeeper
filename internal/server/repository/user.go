@@ -11,6 +11,7 @@ import (
 type UserRepository interface {
 	GetUserForLogin(context.Context, string) (model.User, error)
 	RegisterUser(context.Context, string, string) (int, error)
+	GetUserForID(context.Context, int) (model.User, error)
 }
 
 type UserDB struct {
@@ -61,6 +62,26 @@ func (u *UserDB) GetUserForLogin(ctx context.Context, login string) (model.User,
 	}
 	defer rows.Close()
 
+	if rows.Next() {
+		err := rows.Scan(&user.ID, &user.Login, &user.Password)
+		if err != nil {
+			return model.User{}, err
+		}
+	}
+
+	return user, nil
+}
+
+// GetUserForID - получить пользователя по его ID
+func (u *UserDB) GetUserForID(ctx context.Context, ID int) (model.User, error) {
+	query := `SELECT id, login, password FROM users WHERE id = $1 LIMIT 1`
+	rows, err := u.DB.Query(ctx, query, ID)
+	if err != nil {
+		return model.User{}, err
+	}
+	defer rows.Close()
+
+	var user model.User
 	if rows.Next() {
 		err := rows.Scan(&user.ID, &user.Login, &user.Password)
 		if err != nil {
