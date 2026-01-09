@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"gophkeeper/internal/client/repository"
 	"gophkeeper/internal/model"
 	"net/http"
 	"time"
@@ -17,16 +16,14 @@ type UserService interface {
 }
 
 type userService struct {
-	UserRepository repository.UserRepository
-	SenderService  SenderService
-	TokenService   TokenService
+	SenderService SenderService
+	TokenService  TokenService
 }
 
-func NewUserService(userRepository repository.UserRepository, sender SenderService) *userService {
+func NewUserService(sender SenderService) *userService {
 	return &userService{
-		UserRepository: userRepository,
-		SenderService:  sender,
-		TokenService:   nil,
+		SenderService: sender,
+		TokenService:  nil,
 	}
 }
 

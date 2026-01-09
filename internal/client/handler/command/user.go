@@ -41,6 +41,8 @@ func (u *UserHandler) GetCommands() []*cobra.Command {
 	LoginCmd.Flags().StringP("password", "p", "", "Пароль (обязательный)")
 	LoginCmd.MarkFlagRequired("password")
 
+	// TODO добавить выход из учетной системы
+
 	return []*cobra.Command{
 		RegisterCmd,
 		LoginCmd,

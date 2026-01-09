@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gophkeeper/internal/client/repository"
 	"gophkeeper/internal/model"
 	"net/http"
 	"time"
@@ -17,16 +16,14 @@ type CredentialService interface {
 }
 
 type credentialService struct {
-	CredentialRepository repository.CredentialRepository
-	SenderService        SenderService
-	TokenService         TokenService
+	SenderService SenderService
+	TokenService  TokenService
 }
 
-func NewCredentialService(credentialRepository repository.CredentialRepository, senderService SenderService) *credentialService {
+func NewCredentialService(senderService SenderService) *credentialService {
 	return &credentialService{
-		CredentialRepository: credentialRepository,
-		SenderService:        senderService,
-		TokenService:         nil,
+		SenderService: senderService,
+		TokenService:  nil,
 	}
 }
 
