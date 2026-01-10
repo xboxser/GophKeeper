@@ -22,14 +22,14 @@ erDiagram
 		datetime created_at  ""  
 		datetime uploaded_at  ""  
 	}
-    payment_cards {
+    bank_cards {
         int id PK ""  
         int user_id FK ""  
         title string  ""
         number_enc string  "номер карты"  
         expiry_enc string  "срок действия"
         cvv_enc string  "cvv"
-        cardholder_name string  "имя держателя карты"
+        card_holder_name string  "имя держателя карты"
         last4 string  "последние 4 цифры"
     }
     file {
@@ -38,7 +38,7 @@ erDiagram
         string path "путь до файла на сервере"
     }
 	credentials}|--||users:"  "
-    payment_cards}|--||users:"  "
+    bank_cards}|--||users:"  "
     file}|--||users:"  "
 
 ```

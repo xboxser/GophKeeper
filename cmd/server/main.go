@@ -40,15 +40,15 @@ func main() {
 	credentialService := service.NewCredentialService(credentialRepository)
 	credentialHandler := route.NewCredentialHandler(credentialService, tokenMiddleware)
 
-	paymentCardRepository := repository.NewPaymentCardDB(db)
-	paymentCardService := service.NewPaymentCardService(paymentCardRepository)
-	paymentCardHandler := route.NewPaymentCardHandler(paymentCardService)
+	cardRepository := repository.NewCardDB(db)
+	cardService := service.NewCardService(cardRepository)
+	cardHandler := route.NewCardHandler(cardService, tokenMiddleware)
 
 	chiHandler := handler.NewChiHandler()
 	// добавляем созданные роуты  в основной обработчики
 	chiHandler.AddRoutes(userHandler)
 	chiHandler.AddRoutes(credentialHandler)
-	chiHandler.AddRoutes(paymentCardHandler)
+	chiHandler.AddRoutes(cardHandler)
 
 	server := &http.Server{
 		Addr:    cfg.ServerAddress,

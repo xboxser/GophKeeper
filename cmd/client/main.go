@@ -22,14 +22,19 @@ func main() {
 
 	credentialService := service.NewCredentialService(senderService)
 	credentialService.InitToken(tokenService)
-	credentialHandler := command.NewCredentialHandler(credentialService)
+	credentialCommand := command.NewCredentialHandler(credentialService)
 
 	userService := service.NewUserService(senderService)
 	userService.InitToken(tokenService)
 	userCommand := command.NewUserHandler(userService)
 
+	cardService := service.NewCardService(senderService)
+	cardService.InitToken(tokenService)
+	cardCommand := command.NewCardHandler(cardService)
+
 	cli := handler.NewCli(credentialService)
 	cli.AddCommand(userCommand)
-	cli.AddCommand(credentialHandler)
+	cli.AddCommand(credentialCommand)
+	cli.AddCommand(cardCommand)
 	cli.Run()
 }
