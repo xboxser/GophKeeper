@@ -42,9 +42,9 @@ func (ch *CardHandler) Pattern() string {
 }
 
 func (ch *CardHandler) getCards(w http.ResponseWriter, r *http.Request) {
-	userID := ch.TokenMiddleware.GetUserRequest(r)
+	tokenAuth := ch.TokenMiddleware.GetUserRequest(r)
 
-	if userID == 0 {
+	if tokenAuth.UserID == 0 {
 		http.Error(w, "Invalid user token", http.StatusUnauthorized)
 		return
 	}
@@ -52,7 +52,7 @@ func (ch *CardHandler) getCards(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	credentials, err := ch.CardService.GetCards(ctx, userID)
+	credentials, err := ch.CardService.GetCards(ctx, tokenAuth.UserID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -64,9 +64,9 @@ func (ch *CardHandler) getCards(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ch *CardHandler) addCard(w http.ResponseWriter, r *http.Request) {
-	userID := ch.TokenMiddleware.GetUserRequest(r)
+	tokenAuth := ch.TokenMiddleware.GetUserRequest(r)
 
-	if userID == 0 {
+	if tokenAuth.UserID == 0 {
 		http.Error(w, "Invalid user token", http.StatusUnauthorized)
 		return
 	}
@@ -92,7 +92,7 @@ func (ch *CardHandler) addCard(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	err = ch.CardService.AddCard(ctx, card, userID)
+	err = ch.CardService.AddCard(ctx, card, tokenAuth.UserID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

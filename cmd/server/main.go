@@ -27,13 +27,18 @@ func main() {
 	}
 	defer db.Close()
 
+	jwtTokenService := service.NewTokenService(cfg.JWT_SECRET, cfg.TokenExpiresAt)
+
+	sessionRepository := repository.NewSessionMemory()
+	sessionService := service.NewSessionService(sessionRepository, cfg.TokenExpiresAt)
+
 	// Получаем все объекты для User - пользователи
 	userRepository := repository.NewUserDB(db)
-	userService := service.NewUserService(userRepository)
+	userService := service.NewUserService(userRepository, jwtTokenService, sessionService)
 	userHandler := route.NewUserHandler(userService)
 
 	// формируем middleware для обработки нужных запросов
-	tokenMiddleware := middleware.NewTokenMiddleware(userService)
+	tokenMiddleware := middleware.NewTokenMiddleware(userService, jwtTokenService, sessionService)
 
 	// Получаем все объекты для Credential - учетные данные пользователя
 	credentialRepository := repository.NewCredentialDB(db)

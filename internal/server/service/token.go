@@ -2,47 +2,48 @@ package service
 
 import (
 	"fmt"
-	"os"
+	"gophkeeper/internal/model"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 )
 
-const TokenExp = time.Hour * 3
-
-var jwtSecret = []byte(getJWTSecret())
-
-func getJWTSecret() string {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		secret = "super_secret_code_JWT"
-	}
-	return secret
-}
-
 // Claims — структура утверждений, которая включает стандартные утверждения и
 // одно пользовательское UserID
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID int
+	User string
 }
 
-// BuildJWTString -  создаёт токен и возвращает его в виде строки.
-func BuildJWTString(userID int) (string, error) {
-	// TODO вернуть логер
-	// sugar := logger.GetLogger()
-	// sugar.Debugf("create token: %v", userID)
-	// создаём новый токен с алгоритмом подписи HS256 и утверждениями — Claims
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
+type TokenService interface {
+	BuildJWTString(model.Session) (string, error)
+	GetUser(tokenString string) (string, error)
+}
+
+type tokenService struct {
+	JWTSecret []byte
+	TokenExp  time.Duration
+}
+
+func NewTokenService(jwtSecret string, tokenExp time.Duration) *tokenService {
+	return &tokenService{
+		JWTSecret: []byte(jwtSecret),
+		TokenExp:  tokenExp,
+	}
+}
+
+// BuildJWTString - создаёт токен и возвращает его в виде строки.
+func (t *tokenService) BuildJWTString(session model.Session) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS384, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			// когда создан токен
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExp)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(t.TokenExp)),
 		},
-		UserID: userID,
+		User: session.UUID,
 	})
 
 	// создаём строку токена
-	tokenString, err := token.SignedString(jwtSecret)
+	tokenString, err := token.SignedString(t.JWTSecret)
 	if err != nil {
 		return "", err
 	}
@@ -52,8 +53,9 @@ func BuildJWTString(userID int) (string, error) {
 }
 
 // GetUserID - возвращает ID пользователя из токена.
-func GetUserID(tokenString string) int {
+func (t *tokenService) GetUser(tokenString string) (string, error) {
 	claims := &Claims{}
+	jwtSecret := t.JWTSecret
 	token, err := jwt.ParseWithClaims(tokenString, claims,
 		func(t *jwt.Token) (interface{}, error) {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -61,13 +63,14 @@ func GetUserID(tokenString string) int {
 			}
 			return jwtSecret, nil
 		})
+
 	if err != nil {
-		return -1
+		return "", err
 	}
 
 	if !token.Valid {
-		return -1
+		return "", model.ErrTokenValid
 	}
 
-	return claims.UserID
+	return claims.User, nil
 }

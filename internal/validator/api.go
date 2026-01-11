@@ -7,7 +7,6 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// ValidateModelUserAPI - Проверяем обязательные поля APIUser
 func ValidateModelUserAPI(user model.APIUser) error {
 	if Validate == nil {
 		Init()

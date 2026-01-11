@@ -42,9 +42,9 @@ func (ch *CredentialHandler) Pattern() string {
 }
 
 func (ch *CredentialHandler) getCredentials(w http.ResponseWriter, r *http.Request) {
-	userID := ch.TokenMiddleware.GetUserRequest(r)
+	tokenAuth := ch.TokenMiddleware.GetUserRequest(r)
 
-	if userID == 0 {
+	if tokenAuth.UserID == 0 {
 		http.Error(w, "Invalid user token", http.StatusUnauthorized)
 		return
 	}
@@ -52,7 +52,7 @@ func (ch *CredentialHandler) getCredentials(w http.ResponseWriter, r *http.Reque
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	credentials, err := ch.CredentialService.GetCredentials(ctx, userID)
+	credentials, err := ch.CredentialService.GetCredentials(ctx, tokenAuth.UserID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -64,9 +64,9 @@ func (ch *CredentialHandler) getCredentials(w http.ResponseWriter, r *http.Reque
 }
 
 func (ch *CredentialHandler) addCredential(w http.ResponseWriter, r *http.Request) {
-	userID := ch.TokenMiddleware.GetUserRequest(r)
+	tokenAuth := ch.TokenMiddleware.GetUserRequest(r)
 
-	if userID == 0 {
+	if tokenAuth.UserID == 0 {
 		http.Error(w, "Invalid user token", http.StatusUnauthorized)
 		return
 	}
@@ -92,7 +92,7 @@ func (ch *CredentialHandler) addCredential(w http.ResponseWriter, r *http.Reques
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	err = ch.CredentialService.AddCredential(ctx, credential, userID)
+	err = ch.CredentialService.AddCredential(ctx, credential, tokenAuth.UserID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

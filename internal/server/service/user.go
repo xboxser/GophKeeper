@@ -17,11 +17,15 @@ type UserService interface {
 
 type userService struct {
 	UserRepository repository.UserRepository
+	TokenService   TokenService
+	SessionService SessionService
 }
 
-func NewUserService(userRepository repository.UserRepository) *userService {
+func NewUserService(userRepository repository.UserRepository, tokenService TokenService, sessionService SessionService) *userService {
 	return &userService{
 		UserRepository: userRepository,
+		TokenService:   tokenService,
+		SessionService: sessionService,
 	}
 }
 
@@ -43,7 +47,16 @@ func (u *userService) Register(ctx context.Context, apiUser model.APIUser) (stri
 		return "", fmt.Errorf("error registering user: %w", err)
 	}
 
-	token, err := BuildJWTString(userID)
+	tokenAuth := model.TokenAuth{
+		UserID: userID,
+	}
+
+	session, err := u.SessionService.AddSession(ctx, tokenAuth)
+	if err != nil {
+		return "", err
+	}
+
+	token, err := u.TokenService.BuildJWTString(session)
 	if err != nil {
 		return "", err
 	}
@@ -67,7 +80,16 @@ func (u *userService) Login(ctx context.Context, apiUser model.APIUser) (string,
 		return "", model.ErrLoginIncorrect
 	}
 
-	token, err := BuildJWTString(user.ID)
+	tokenAuth := model.TokenAuth{
+		UserID: user.ID,
+	}
+
+	session, err := u.SessionService.AddSession(ctx, tokenAuth)
+	if err != nil {
+		return "", err
+	}
+
+	token, err := u.TokenService.BuildJWTString(session)
 	if err != nil {
 		return "", err
 	}
