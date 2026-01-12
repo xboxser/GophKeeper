@@ -11,14 +11,15 @@ type TokenRepository interface {
 }
 
 type tokenRepository struct {
+	FileName string
 }
 
-func NewTokenRepository() *tokenRepository {
-	return &tokenRepository{}
+func NewTokenRepository(fileName string) *tokenRepository {
+	return &tokenRepository{FileName: fileName}
 }
 
 func (t *tokenRepository) GetToken() (string, error) {
-	data, err := os.ReadFile("token")
+	data, err := os.ReadFile(t.FileName)
 	if err != nil {
 		return "", fmt.Errorf("Не удалось прочитать токен: %v", err)
 	}
@@ -33,7 +34,7 @@ func (t *tokenRepository) GetToken() (string, error) {
 
 // SetToken - сохраняем токен пользователя, файл каждый раз перезаписывается
 func (t *tokenRepository) SetToken(token string) error {
-	err := os.WriteFile("token", []byte(token), 0600) // 0600 только владелец может читать и писать
+	err := os.WriteFile(t.FileName, []byte(token), 0600) // 0600 только владелец может читать и писать
 	if err != nil {
 		return fmt.Errorf("Не удалось записать токен в файл: %v", err)
 	}

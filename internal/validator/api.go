@@ -14,7 +14,7 @@ func ValidateModelRegistrationUserAPI(user model.APIUser) error {
 	if err != nil {
 		return err
 	}
-	if user.Code == nil {
+	if user.Code == nil || len(user.Code) == 0 {
 		return model.ErrUserEmptyCode
 	}
 	return nil

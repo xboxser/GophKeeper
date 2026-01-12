@@ -19,7 +19,7 @@ func main() {
 
 	encryptionService := service.NewEncryptionService("secret")
 
-	tokenRep := repository.NewTokenRepository()
+	tokenRep := repository.NewTokenRepository("token")
 	tokenService := service.NewTokenService(tokenRep)
 
 	credentialService := service.NewCredentialService(senderService, encryptionService)

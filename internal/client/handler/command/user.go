@@ -66,7 +66,7 @@ func (u *UserHandler) RegistrationRun(cmd *cobra.Command, args []string) {
 	}
 
 	masterPass, err := cmd.Flags().GetString("masterPass")
-	if err != nil || password == "" {
+	if err != nil || masterPass == "" {
 		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
 		return
 	}

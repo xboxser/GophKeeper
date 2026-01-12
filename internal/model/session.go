@@ -14,6 +14,5 @@ var (
 type Session struct {
 	UserID    int
 	UUID      string
-	Code      []byte
 	ExpiresAt time.Time // время жизни сессии
 }
