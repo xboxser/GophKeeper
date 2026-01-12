@@ -20,15 +20,18 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 func (u *UserHandler) GetCommands() []*cobra.Command {
 
 	RegisterCmd := &cobra.Command{
-		Use:     "registration",
-		Short:   "Добавить новые учетные записи",
-		Example: `  todo registration --login "userName" --password "password"`,
-		Run:     u.RegistrationRun,
+		Use:   "registration",
+		Short: "Добавить новые учетные записи",
+		Example: `  todo registration --login "userName" --password "password" --masterPass "password"
+			Значение флага --masterPass: пароль для шифрования, его необходимо запомнить. Не подлежит восстановлению!!!`,
+		Run: u.RegistrationRun,
 	}
-	RegisterCmd.Flags().StringP("login", "l", "", "Логин (обязательный)")
+	RegisterCmd.Flags().StringP("login", "l", "", "Логин (Обязательный)")
 	RegisterCmd.MarkFlagRequired("login")
-	RegisterCmd.Flags().StringP("password", "p", "", "Пароль (обязательный)")
+	RegisterCmd.Flags().StringP("password", "p", "", "Пароль (Обязательный)")
 	RegisterCmd.MarkFlagRequired("password")
+	RegisterCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный. Не подлежит восстановлению!!!)")
+	RegisterCmd.MarkFlagRequired("masterPass")
 
 	LoginCmd := &cobra.Command{
 		Use:     "login",
@@ -62,7 +65,13 @@ func (u *UserHandler) RegistrationRun(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	token, err := u.UserService.Register(login, password)
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || password == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+
+	token, err := u.UserService.Register(login, password, masterPass)
 
 	if err != nil {
 		fmt.Println("❌ Ошибка регистрации:", err)

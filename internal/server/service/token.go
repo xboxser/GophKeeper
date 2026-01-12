@@ -34,7 +34,7 @@ func NewTokenService(jwtSecret string, tokenExp time.Duration) *tokenService {
 
 // BuildJWTString - создаёт токен и возвращает его в виде строки.
 func (t *tokenService) BuildJWTString(session model.Session) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS384, Claims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			// когда создан токен
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(t.TokenExp)),

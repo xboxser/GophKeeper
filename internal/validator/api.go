@@ -7,6 +7,19 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+// ValidateModelRegistrationUserAPI - проверяем по отдельному сценарию данные в запросе регистрации
+// метод дополняет проверку ValidateModelUserAPI
+func ValidateModelRegistrationUserAPI(user model.APIUser) error {
+	err := ValidateModelUserAPI(user)
+	if err != nil {
+		return err
+	}
+	if user.Code == nil {
+		return model.ErrUserEmptyCode
+	}
+	return nil
+}
+
 func ValidateModelUserAPI(user model.APIUser) error {
 	if Validate == nil {
 		Init()

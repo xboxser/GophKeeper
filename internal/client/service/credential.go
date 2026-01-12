@@ -16,14 +16,16 @@ type CredentialService interface {
 }
 
 type credentialService struct {
-	SenderService SenderService
-	TokenService  TokenService
+	SenderService     SenderService
+	TokenService      TokenService
+	EncryptionService EncryptionService
 }
 
-func NewCredentialService(senderService SenderService) *credentialService {
+func NewCredentialService(senderService SenderService, encryptionService EncryptionService) *credentialService {
 	return &credentialService{
-		SenderService: senderService,
-		TokenService:  nil,
+		SenderService:     senderService,
+		EncryptionService: encryptionService,
+		TokenService:      nil,
 	}
 }
 

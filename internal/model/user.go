@@ -13,9 +13,11 @@ type User struct {
 	ID       int
 	Login    string
 	Password string
+	Code     []byte
 }
 
 type APIUser struct {
 	Login    string `json:"login" validate:"required"`
 	Password string `json:"password" validate:"required"`
+	Code     []byte `json:"code"`
 }

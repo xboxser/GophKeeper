@@ -7,10 +7,12 @@ import (
 	"gophkeeper/internal/model"
 	"net/http"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
-	Register(login, password string) (string, error)
+	Register(login, password, masterPass string) (string, error)
 	Login(login, password string) (string, error)
 	InitToken(TokenService)
 }
@@ -32,10 +34,13 @@ func (s *userService) InitToken(tokenService TokenService) {
 	s.TokenService = tokenService
 }
 
-func (s *userService) Register(login, password string) (string, error) {
+func (s *userService) Register(login, password, masterPass string) (string, error) {
+	hashedMasterPass, err := bcrypt.GenerateFromPassword([]byte(masterPass), bcrypt.DefaultCost)
+
 	user := model.APIUser{
 		Login:    login,
 		Password: password,
+		Code:     hashedMasterPass,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

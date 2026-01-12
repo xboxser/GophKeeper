@@ -19,6 +19,7 @@ erDiagram
 		int id PK ""  
 		string login  ""  
 		string password  "hash BCRYPT"  
+        BYTEA code  ""  
 		datetime created_at  ""  
 		datetime uploaded_at  ""  
 	}

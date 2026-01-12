@@ -10,7 +10,7 @@ import (
 
 type UserRepository interface {
 	GetUserForLogin(context.Context, string) (model.User, error)
-	RegisterUser(context.Context, string, string) (int, error)
+	RegisterUser(context.Context, model.APIUser) (int, error)
 	GetUserForID(context.Context, int) (model.User, error)
 }
 
@@ -23,17 +23,17 @@ func NewUserDB(db db.DB) *UserDB {
 }
 
 // RegisterUser - регистрируем пользователя в системе
-func (u *UserDB) RegisterUser(ctx context.Context, login string, password string) (int, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+func (u *UserDB) RegisterUser(ctx context.Context, apiUser model.APIUser) (int, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(apiUser.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return 0, err
 	}
 
 	// Регистрируем пользователя и пытаемся получить его ID
 	userID := 0
-	query := `INSERT INTO users (login, password) VALUES ($1, $2) RETURNING id`
+	query := `INSERT INTO users (login, password, code) VALUES ($1, $2, $3) RETURNING id`
 
-	rows, err := u.DB.Query(ctx, query, login, string(hashedPassword))
+	rows, err := u.DB.Query(ctx, query, apiUser.Login, string(hashedPassword), apiUser.Code)
 	if err != nil {
 		return 0, err
 	}
@@ -56,14 +56,14 @@ func (u *UserDB) RegisterUser(ctx context.Context, login string, password string
 // GetUserForLogin - получить пользователя по его логину
 func (u *UserDB) GetUserForLogin(ctx context.Context, login string) (model.User, error) {
 	var user model.User
-	rows, err := u.DB.Query(ctx, "SELECT id, login, password FROM users WHERE login = $1", login)
+	rows, err := u.DB.Query(ctx, "SELECT id, login, password, code FROM users WHERE login = $1", login)
 	if err != nil {
 		return model.User{}, err
 	}
 	defer rows.Close()
 
 	if rows.Next() {
-		err := rows.Scan(&user.ID, &user.Login, &user.Password)
+		err := rows.Scan(&user.ID, &user.Login, &user.Password, &user.Code)
 		if err != nil {
 			return model.User{}, err
 		}

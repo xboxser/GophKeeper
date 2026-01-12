@@ -51,7 +51,7 @@ func (u *UserHandler) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := validator.ValidateModelUserAPI(user); err != nil {
+	if err := validator.ValidateModelRegistrationUserAPI(user); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

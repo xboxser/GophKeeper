@@ -42,7 +42,7 @@ func (u *userService) Register(ctx context.Context, apiUser model.APIUser) (stri
 		return "", model.ErrLoginBusy
 	}
 
-	userID, err := u.UserRepository.RegisterUser(ctx, apiUser.Login, apiUser.Password)
+	userID, err := u.UserRepository.RegisterUser(ctx, apiUser)
 	if err != nil {
 		return "", fmt.Errorf("error registering user: %w", err)
 	}
