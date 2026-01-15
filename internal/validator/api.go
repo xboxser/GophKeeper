@@ -69,7 +69,7 @@ func ValidateModelCredentialAPI(credential model.Credential) error {
 	return nil
 }
 
-// ValidateModelCredentialAPI - Проверяем обязательные поля Card
+// ValidateModelCardAPI - Проверяем обязательные поля Card
 func ValidateModelCardAPI(credential model.Card) error {
 	if Validate == nil {
 		Init()
