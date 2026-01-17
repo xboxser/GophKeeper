@@ -30,9 +30,9 @@ func main() {
 	credentialService.InitToken(tokenService)
 	credentialCommand := command.NewCredentialHandler(credentialService, userService)
 
-	cardService := service.NewCardService(senderService)
+	cardService := service.NewCardService(senderService, encryptionService)
 	cardService.InitToken(tokenService)
-	cardCommand := command.NewCardHandler(cardService)
+	cardCommand := command.NewCardHandler(cardService, userService)
 
 	cli := handler.NewCli(credentialService)
 	cli.AddCommand(userCommand)

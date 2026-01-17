@@ -71,7 +71,7 @@ func (ch *CardHandler) addCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var card model.Card
+	var card model.CardAPI
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {

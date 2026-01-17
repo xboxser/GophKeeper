@@ -9,12 +9,14 @@ import (
 )
 
 type CardHandler struct {
-	CardService service.CardService
+	CardService       service.CardService
+	UserMasterService service.UserMasterService
 }
 
-func NewCardHandler(cardService service.CardService) *CardHandler {
+func NewCardHandler(cardService service.CardService, u service.UserMasterService) *CardHandler {
 	return &CardHandler{
-		CardService: cardService,
+		CardService:       cardService,
+		UserMasterService: u,
 	}
 
 }
@@ -35,13 +37,17 @@ func (ch *CardHandler) GetCommands() []*cobra.Command {
 	addCardCmd.MarkFlagRequired("cvv")
 	addCardCmd.Flags().StringP("card_holder", "o", "", "Имя держателя карты (обязательное)")
 	addCardCmd.MarkFlagRequired("card_holder")
+	addCardCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	addCardCmd.MarkFlagRequired("masterPass")
 
 	getCardCmd := &cobra.Command{
 		Use:     "getCard",
 		Short:   "Получить список банковских карт",
-		Example: ``,
+		Example: `  todo getCard --masterPass "password"`,
 		Run:     ch.getCardRun,
 	}
+	getCardCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	getCardCmd.MarkFlagRequired("masterPass")
 
 	return []*cobra.Command{
 		addCardCmd,
@@ -50,6 +56,13 @@ func (ch *CardHandler) GetCommands() []*cobra.Command {
 }
 
 func (ch *CardHandler) getCardRun(cmd *cobra.Command, args []string) {
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+	ch.CardService.SetMasterPass(masterPass)
+
 	cards, err := ch.CardService.GetCards()
 
 	if err != nil {
@@ -76,8 +89,20 @@ func (ch *CardHandler) getCardRun(cmd *cobra.Command, args []string) {
 }
 
 func (ch *CardHandler) addCardRun(cmd *cobra.Command, args []string) {
-	card := model.Card{}
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+	ch.CardService.SetMasterPass(masterPass)
 
+	err = ch.UserMasterService.Master(masterPass)
+	if err != nil {
+		fmt.Println("❌ Ошибка проверки мастер пароля:", err)
+		return
+	}
+
+	card := model.Card{}
 	str, err := cmd.Flags().GetString("title")
 	if err != nil || str == "" {
 		fmt.Println("❌ Ошибка: укажите произвольное название карты (--title или -t)")
@@ -112,6 +137,7 @@ func (ch *CardHandler) addCardRun(cmd *cobra.Command, args []string) {
 		return
 	}
 	card.CardHolder = str
+
 	err = ch.CardService.AddCard(card)
 
 	if err != nil {

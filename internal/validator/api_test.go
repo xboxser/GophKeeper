@@ -101,18 +101,23 @@ func TestValidateModelCardAPI(t *testing.T) {
 		Init()
 	}
 
+	number := []byte("number")
+	expiry := []byte("expiry")
+	cvv := []byte("cvv")
+	cartHolder := []byte("cartHolder")
+
 	tests := []struct {
 		name     string
-		card     model.Card
+		card     model.CardAPI
 		valError bool
 	}{
-		{name: "valid parameters", card: model.Card{Title: "title", Number: "number", Expiry: "Expiry", CVV: "CVV", CardHolder: "CardHolder"}, valError: false},
-		{name: "empty parameters", card: model.Card{Title: "", Number: "", Expiry: "", CVV: "", CardHolder: "CardHolder"}, valError: true},
-		{name: "nil Title", card: model.Card{Title: "", Number: "number", Expiry: "Expiry", CVV: "CVV", CardHolder: "CardHolder"}, valError: true},
-		{name: "nil Number", card: model.Card{Title: "title", Number: "", Expiry: "Expiry", CVV: "CVV", CardHolder: "CardHolder"}, valError: true},
-		{name: "nil Expiry", card: model.Card{Title: "title", Number: "number", Expiry: "", CVV: "CVV", CardHolder: "CardHolder"}, valError: true},
-		{name: "nil CVV", card: model.Card{Title: "title", Number: "number", Expiry: "Expiry", CVV: "", CardHolder: "CardHolder"}, valError: true},
-		{name: "nil CardHolder", card: model.Card{Title: "title", Number: "number", Expiry: "Expiry", CVV: "CVV", CardHolder: ""}, valError: true},
+		{name: "valid parameters", card: model.CardAPI{Title: "title", Number: number, Expiry: expiry, CVV: cvv, CardHolder: cartHolder}, valError: false},
+		{name: "empty parameters", card: model.CardAPI{Title: "", Number: []byte{}, Expiry: []byte{}, CVV: []byte{}, CardHolder: []byte{}}, valError: true},
+		{name: "nil Title", card: model.CardAPI{Title: "", Number: number, Expiry: expiry, CVV: cvv, CardHolder: cartHolder}, valError: true},
+		{name: "nil Number", card: model.CardAPI{Title: "title", Number: []byte{}, Expiry: expiry, CVV: cvv, CardHolder: cartHolder}, valError: true},
+		{name: "nil Expiry", card: model.CardAPI{Title: "title", Number: number, Expiry: []byte{}, CVV: cvv, CardHolder: cartHolder}, valError: true},
+		{name: "nil CVV", card: model.CardAPI{Title: "title", Number: number, Expiry: expiry, CVV: []byte{}, CardHolder: cartHolder}, valError: true},
+		{name: "nil CardHolder", card: model.CardAPI{Title: "title", Number: number, Expiry: expiry, CVV: cvv, CardHolder: []byte{}}, valError: true},
 	}
 
 	for _, tt := range tests {
