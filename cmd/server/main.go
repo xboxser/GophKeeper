@@ -35,10 +35,10 @@ func main() {
 	// Получаем все объекты для User - пользователи
 	userRepository := repository.NewUserDB(db)
 	userService := service.NewUserService(userRepository, jwtTokenService, sessionService)
-	userHandler := route.NewUserHandler(userService)
 
 	// формируем middleware для обработки нужных запросов
 	tokenMiddleware := middleware.NewTokenMiddleware(userService, jwtTokenService, sessionService)
+	userHandler := route.NewUserHandler(userService, tokenMiddleware)
 
 	// Получаем все объекты для Credential - учетные данные пользователя
 	credentialRepository := repository.NewCredentialDB(db)

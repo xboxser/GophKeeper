@@ -74,7 +74,7 @@ func (u *UserDB) GetUserForLogin(ctx context.Context, login string) (model.User,
 
 // GetUserForID - получить пользователя по его ID
 func (u *UserDB) GetUserForID(ctx context.Context, ID int) (model.User, error) {
-	query := `SELECT id, login, password FROM users WHERE id = $1 LIMIT 1`
+	query := `SELECT id, login, password, code FROM users WHERE id = $1 LIMIT 1`
 	rows, err := u.DB.Query(ctx, query, ID)
 	if err != nil {
 		return model.User{}, err
@@ -83,7 +83,7 @@ func (u *UserDB) GetUserForID(ctx context.Context, ID int) (model.User, error) {
 
 	var user model.User
 	if rows.Next() {
-		err := rows.Scan(&user.ID, &user.Login, &user.Password)
+		err := rows.Scan(&user.ID, &user.Login, &user.Password, &user.Code)
 		if err != nil {
 			return model.User{}, err
 		}

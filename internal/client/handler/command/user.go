@@ -24,7 +24,7 @@ func (u *UserHandler) GetCommands() []*cobra.Command {
 		Short: "Добавить новые учетные записи",
 		Example: `  todo registration --login "userName" --password "password" --masterPass "password"
 			Значение флага --masterPass: пароль для шифрования, его необходимо запомнить. Не подлежит восстановлению!!!`,
-		Run: u.RegistrationRun,
+		Run: u.registrationRun,
 	}
 	RegisterCmd.Flags().StringP("login", "l", "", "Логин (Обязательный)")
 	RegisterCmd.MarkFlagRequired("login")
@@ -37,23 +37,33 @@ func (u *UserHandler) GetCommands() []*cobra.Command {
 		Use:     "login",
 		Short:   "Авторизоваться",
 		Example: `  todo login --login "userName" --password "password"`,
-		Run:     u.LoginRun,
+		Run:     u.loginRun,
 	}
 	LoginCmd.Flags().StringP("login", "l", "", "Логин (обязательный)")
 	LoginCmd.MarkFlagRequired("login")
 	LoginCmd.Flags().StringP("password", "p", "", "Пароль (обязательный)")
 	LoginCmd.MarkFlagRequired("password")
 
+	masterCmd := &cobra.Command{
+		Use:     "master",
+		Short:   "Проверка мастер пароля",
+		Example: `  todo master --masterPass "password"`,
+		Run:     u.masterRun,
+	}
+	masterCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	masterCmd.MarkFlagRequired("masterPass")
+
 	// TODO добавить выход из учетной системы
 
 	return []*cobra.Command{
 		RegisterCmd,
 		LoginCmd,
+		masterCmd,
 	}
 }
 
 // RegistrationRun - обработчик регистрации пользователя
-func (u *UserHandler) RegistrationRun(cmd *cobra.Command, args []string) {
+func (u *UserHandler) registrationRun(cmd *cobra.Command, args []string) {
 	login, err := cmd.Flags().GetString("login")
 	if err != nil || login == "" {
 		fmt.Println("❌ Ошибка: укажите логин (--login или -l)")
@@ -86,7 +96,7 @@ func (u *UserHandler) RegistrationRun(cmd *cobra.Command, args []string) {
 	fmt.Println("Ваш токен:", token)
 }
 
-func (u *UserHandler) LoginRun(cmd *cobra.Command, args []string) {
+func (u *UserHandler) loginRun(cmd *cobra.Command, args []string) {
 	login, err := cmd.Flags().GetString("login")
 	if err != nil || login == "" {
 		fmt.Println("❌ Ошибка: укажите логин (--login или -l)")
@@ -111,5 +121,25 @@ func (u *UserHandler) LoginRun(cmd *cobra.Command, args []string) {
 	}
 	fmt.Println("✅ Авторизация прошла успешно")
 	fmt.Println("Ваш токен:", token)
+
+}
+
+// masterRun - обработчик проверки валидности мастер пароля
+func (u *UserHandler) masterRun(cmd *cobra.Command, args []string) {
+
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+
+	err = u.UserService.Master(masterPass)
+
+	if err != nil {
+		fmt.Println("❌ Ошибка не верный мастер пароль:", err)
+		return
+	}
+
+	fmt.Println("✅ Проверка мастер пароля прошла успешно")
 
 }

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"gophkeeper/internal/model"
+	"gophkeeper/internal/server/handler/middleware"
 	"gophkeeper/internal/server/service"
 	"gophkeeper/internal/validator"
 	"net/http"
@@ -17,12 +18,14 @@ import (
 // UserHandler - обработчик запросов связанных с пользователем
 // Поддерживает интерфейс RouteChi
 type UserHandler struct {
-	UserService service.UserService
+	UserService     service.UserService
+	TokenMiddleware middleware.TokenMiddleware
 }
 
-func NewUserHandler(userService service.UserService) *UserHandler {
+func NewUserHandler(userService service.UserService, tokenMiddleware middleware.TokenMiddleware) *UserHandler {
 	return &UserHandler{
-		UserService: userService,
+		UserService:     userService,
+		TokenMiddleware: tokenMiddleware,
 	}
 }
 
@@ -30,6 +33,10 @@ func (u *UserHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 	r.Post("/register", u.register)
 	r.Post("/login", u.login)
+
+	// Группа маршрутов использующих токен у user
+	protected := r.With(u.TokenMiddleware.CheckToken)
+	protected.Get("/code", u.code)
 	return r
 }
 func (u *UserHandler) Pattern() string {
@@ -109,5 +116,31 @@ func (u *UserHandler) login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Authorization", token)
 	w.WriteHeader(http.StatusOK)
+
+}
+
+// code - Возвращаем хеш мастер кода
+func (u *UserHandler) code(w http.ResponseWriter, r *http.Request) {
+	tokenAuth := u.TokenMiddleware.GetUserRequest(r)
+
+	if tokenAuth.UserID == 0 {
+		http.Error(w, "Invalid user token", http.StatusUnauthorized)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	user, err := u.UserService.GetUserForID(ctx, tokenAuth.UserID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	code := model.Code{Hash: user.Code}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(code)
 
 }
