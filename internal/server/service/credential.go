@@ -7,8 +7,8 @@ import (
 )
 
 type CredentialService interface {
-	GetCredentials(ctx context.Context, userID int) ([]model.Credential, error)
-	AddCredential(ctx context.Context, credential model.Credential, userID int) error
+	GetCredentials(ctx context.Context, userID int) ([]model.CredentialAPI, error)
+	AddCredential(ctx context.Context, credential model.CredentialAPI, userID int) error
 }
 
 type credentialService struct {
@@ -21,11 +21,11 @@ func NewCredentialService(credentialRepository repository.CredentialRepository) 
 	}
 }
 
-func (s *credentialService) GetCredentials(ctx context.Context, userID int) ([]model.Credential, error) {
+func (s *credentialService) GetCredentials(ctx context.Context, userID int) ([]model.CredentialAPI, error) {
 	return s.credentialRepository.GetCredentials(ctx, userID)
 }
 
-func (s *credentialService) AddCredential(ctx context.Context, credential model.Credential, userID int) error {
+func (s *credentialService) AddCredential(ctx context.Context, credential model.CredentialAPI, userID int) error {
 	return s.credentialRepository.AddCredential(ctx, credential, userID)
 
 }

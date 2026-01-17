@@ -35,9 +35,8 @@ func NewTokenMiddleware(userService service.UserService, tokenService service.To
 // CheckToken - Проверка наличия токена в запросе
 func (t *tokenMiddleware) CheckToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		headerValue := r.Header.Get("Authorization")
-
-		if headerValue == "" {
+		authValue := r.Header.Get("Authorization")
+		if authValue == "" {
 			http.Error(w, "Authorization header is required", http.StatusUnauthorized)
 			return
 		}
@@ -45,8 +44,7 @@ func (t *tokenMiddleware) CheckToken(next http.Handler) http.Handler {
 		ctx, cancel := context.WithTimeout(r.Context(), 1*time.Second)
 		defer cancel()
 
-		// Проверяем что передали числовое значение
-		uuid, err := t.TokenService.GetUser(headerValue)
+		uuid, err := t.TokenService.GetUser(authValue)
 		if err != nil {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
@@ -67,6 +65,7 @@ func (t *tokenMiddleware) CheckToken(next http.Handler) http.Handler {
 
 		// Добавляем userID в контекст запроса
 		// На основе данного поля определяем пользователя в дальнейшем
+		// TODO переделать на model.User для избавления от лишних запросов к БД
 		ctx = context.WithValue(r.Context(), UserIDContextKey, tokenAuth)
 		// Передаем запрос с обновленным контекстом дальше
 		next.ServeHTTP(w, r.WithContext(ctx))

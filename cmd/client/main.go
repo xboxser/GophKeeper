@@ -17,18 +17,18 @@ func main() {
 	client := &http.Client{}
 	senderService := service.NewSenderService(client, cfg.ServerAddress)
 
-	encryptionService := service.NewEncryptionService("secret")
+	encryptionService := service.NewEncryptionService()
 
 	tokenRep := repository.NewTokenRepository("token")
 	tokenService := service.NewTokenService(tokenRep)
 
-	credentialService := service.NewCredentialService(senderService, encryptionService)
-	credentialService.InitToken(tokenService)
-	credentialCommand := command.NewCredentialHandler(credentialService)
-
 	userService := service.NewUserService(senderService)
 	userService.InitToken(tokenService)
 	userCommand := command.NewUserHandler(userService)
+
+	credentialService := service.NewCredentialService(senderService, encryptionService)
+	credentialService.InitToken(tokenService)
+	credentialCommand := command.NewCredentialHandler(credentialService, userService)
 
 	cardService := service.NewCardService(senderService)
 	cardService.InitToken(tokenService)

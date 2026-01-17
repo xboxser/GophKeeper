@@ -10,8 +10,8 @@ import (
 )
 
 type CredentialService interface {
-	GetCredentials() ([]model.Credential, error)
-	AddCredential(login, password string) error
+	GetCredentials(string) ([]model.Credential, error)
+	AddCredential(login, password, masterPass string) error
 	InitToken(TokenService)
 }
 
@@ -35,7 +35,7 @@ func (s *credentialService) InitToken(tokenService TokenService) {
 	s.TokenService = tokenService
 }
 
-func (s *credentialService) GetCredentials() ([]model.Credential, error) {
+func (s *credentialService) GetCredentials(masterPass string) ([]model.Credential, error) {
 	token, err := s.TokenService.GetToken()
 	if err != nil {
 		return nil, err
@@ -55,22 +55,41 @@ func (s *credentialService) GetCredentials() ([]model.Credential, error) {
 		return nil, fmt.Errorf("error get credentials, %v", string(body))
 	}
 
-	var credentials []model.Credential
-	if err = json.Unmarshal(body, &credentials); err != nil {
+	var credentialsAPI []model.CredentialAPI
+	if err = json.Unmarshal(body, &credentialsAPI); err != nil {
 		return nil, err
+	}
+
+	var credentials []model.Credential
+	s.EncryptionService.SetMasterPass(masterPass)
+	for _, credentialAPI := range credentialsAPI {
+		credential, err := s.EncryptionService.Decrypt(credentialAPI.Password)
+		if err != nil {
+			return nil, err
+		}
+		credentials = append(credentials, model.Credential{
+			Login:    credentialAPI.Login,
+			Password: credential,
+		})
 	}
 
 	return credentials, nil
 }
 
-func (s *credentialService) AddCredential(login, password string) error {
+func (s *credentialService) AddCredential(login, password, masterPass string) error {
 	token, err := s.TokenService.GetToken()
 	if err != nil {
 		return err
 	}
 	s.SenderService.SetToken(token)
 
-	json, err := json.Marshal(model.Credential{Login: login, Password: password})
+	s.EncryptionService.SetMasterPass(masterPass)
+	passHash, err := s.EncryptionService.Encrypt(password)
+	if err != nil {
+		return err
+	}
+
+	json, err := json.Marshal(model.CredentialAPI{Login: login, Password: passHash})
 	if err != nil {
 		return err
 	}

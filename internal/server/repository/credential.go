@@ -7,8 +7,8 @@ import (
 )
 
 type CredentialRepository interface {
-	GetCredentials(ctx context.Context, userID int) ([]model.Credential, error)
-	AddCredential(ctx context.Context, credential model.Credential, userID int) error
+	GetCredentials(ctx context.Context, userID int) ([]model.CredentialAPI, error)
+	AddCredential(ctx context.Context, credential model.CredentialAPI, userID int) error
 }
 
 type CredentialDB struct {
@@ -22,8 +22,8 @@ func NewCredentialDB(db db.DB) *CredentialDB {
 	}
 }
 
-func (c *CredentialDB) GetCredentials(ctx context.Context, userID int) ([]model.Credential, error) {
-	credentials := []model.Credential{}
+func (c *CredentialDB) GetCredentials(ctx context.Context, userID int) ([]model.CredentialAPI, error) {
+	credentials := []model.CredentialAPI{}
 	rows, err := c.DB.Query(ctx, "SELECT login, password FROM credentials WHERE user_id = $1 ORDER BY id", userID)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (c *CredentialDB) GetCredentials(ctx context.Context, userID int) ([]model.
 	defer rows.Close()
 
 	for rows.Next() {
-		credential := model.Credential{}
+		credential := model.CredentialAPI{}
 		err := rows.Scan(&credential.Login, &credential.Password)
 		if err != nil {
 			return nil, err
@@ -41,7 +41,7 @@ func (c *CredentialDB) GetCredentials(ctx context.Context, userID int) ([]model.
 	return credentials, nil
 }
 
-func (c *CredentialDB) AddCredential(ctx context.Context, credential model.Credential, userID int) error {
+func (c *CredentialDB) AddCredential(ctx context.Context, credential model.CredentialAPI, userID int) error {
 	query := `INSERT INTO credentials (user_id, login, password) VALUES ($1, $2, $3)`
 	_, err := c.DB.Exec(ctx, query, userID, credential.Login, credential.Password)
 	if err != nil {

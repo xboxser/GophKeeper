@@ -71,7 +71,7 @@ func (ch *CredentialHandler) addCredential(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var credential model.Credential
+	var credential model.CredentialAPI
 	var buf bytes.Buffer
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {

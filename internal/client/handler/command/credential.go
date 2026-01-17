@@ -9,11 +9,13 @@ import (
 
 type CredentialHandler struct {
 	CredentialService service.CredentialService
+	UserMasterService service.UserMasterService
 }
 
-func NewCredentialHandler(credentialService service.CredentialService) *CredentialHandler {
+func NewCredentialHandler(credentialService service.CredentialService, u service.UserMasterService) *CredentialHandler {
 	return &CredentialHandler{
 		CredentialService: credentialService,
+		UserMasterService: u,
 	}
 }
 
@@ -22,20 +24,24 @@ func (ch *CredentialHandler) GetCommands() []*cobra.Command {
 	addCredentialCmd := &cobra.Command{
 		Use:     "addCredential",
 		Short:   "Добавить новые учетные записи",
-		Example: `  todo addCredential --login "userName" --password "password"`,
+		Example: `  todo addCredential --login "userName" --password "password" --masterPass "password"`,
 		Run:     ch.addCredentialRun,
 	}
 	addCredentialCmd.Flags().StringP("login", "l", "", "Логин (обязательный)")
 	addCredentialCmd.MarkFlagRequired("login")
 	addCredentialCmd.Flags().StringP("password", "p", "", "Пароль (обязательный)")
 	addCredentialCmd.MarkFlagRequired("password")
+	addCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	addCredentialCmd.MarkFlagRequired("masterPass")
 
 	getCredentialCmd := &cobra.Command{
 		Use:     "getCredential",
 		Short:   "Получить список учетных данных",
-		Example: ``,
+		Example: `  todo getCredential --masterPass "password"`,
 		Run:     ch.getCredentialRun,
 	}
+	getCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	getCredentialCmd.MarkFlagRequired("masterPass")
 
 	return []*cobra.Command{
 		addCredentialCmd,
@@ -54,8 +60,19 @@ func (ch *CredentialHandler) addCredentialRun(cmd *cobra.Command, args []string)
 		fmt.Println("❌ Ошибка: укажите пароль (--password или -p)")
 		return
 	}
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
 
-	err = ch.CredentialService.AddCredential(login, password)
+	err = ch.UserMasterService.Master(masterPass)
+	if err != nil {
+		fmt.Println("❌ Ошибка проверки мастер пароля:", err)
+		return
+	}
+
+	err = ch.CredentialService.AddCredential(login, password, masterPass)
 
 	if err != nil {
 		fmt.Println("❌ Ошибка:", err)
@@ -66,8 +83,13 @@ func (ch *CredentialHandler) addCredentialRun(cmd *cobra.Command, args []string)
 }
 
 func (ch *CredentialHandler) getCredentialRun(cmd *cobra.Command, args []string) {
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
 
-	credentials, err := ch.CredentialService.GetCredentials()
+	credentials, err := ch.CredentialService.GetCredentials(masterPass)
 
 	if err != nil {
 		fmt.Println("❌ Ошибка:", err)
@@ -84,7 +106,7 @@ func (ch *CredentialHandler) getCredentialRun(cmd *cobra.Command, args []string)
 	for i, cred := range credentials {
 		fmt.Printf("📋 Запись #%d\n", i+1)
 		fmt.Printf("   Логин: %s\n", cred.Login)
-		fmt.Printf("   Пароль: %s\n", cred.Password)
+		fmt.Printf("   Пароль: %s\n", string(cred.Password))
 		fmt.Println()
 	}
 }

@@ -71,16 +71,17 @@ func TestValidateModelCredentialAPI(t *testing.T) {
 	if Validate == nil {
 		Init()
 	}
+	password := []byte("pass")
 
 	tests := []struct {
 		name       string
-		credential model.Credential
+		credential model.CredentialAPI
 		valError   bool
 	}{
-		{name: "valid parameters", credential: model.Credential{Login: "qwerty", Password: "pass"}, valError: false},
-		{name: "empty parameters", credential: model.Credential{Login: "", Password: ""}, valError: true},
-		{name: "nil password", credential: model.Credential{Login: "qwerty"}, valError: true},
-		{name: "nil login", credential: model.Credential{Password: "pass"}, valError: true},
+		{name: "valid parameters", credential: model.CredentialAPI{Login: "qwerty", Password: password}, valError: false},
+		{name: "empty parameters", credential: model.CredentialAPI{Login: "", Password: []byte{}}, valError: true},
+		{name: "nil password", credential: model.CredentialAPI{Login: "qwerty"}, valError: true},
+		{name: "nil login", credential: model.CredentialAPI{Password: password}, valError: true},
 	}
 
 	for _, tt := range tests {

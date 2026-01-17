@@ -14,6 +14,7 @@ import (
 type EncryptionService interface {
 	Encrypt(string) ([]byte, error)
 	Decrypt([]byte) (string, error)
+	SetMasterPass(string)
 }
 
 type encryptionService struct {
@@ -22,15 +23,21 @@ type encryptionService struct {
 	nonceLen   int
 }
 
-func NewEncryptionService(masterPass string) *encryptionService {
+func NewEncryptionService() *encryptionService {
 	return &encryptionService{
-		masterPass: masterPass,
-		saltLen:    16,
-		nonceLen:   12,
+		saltLen:  16,
+		nonceLen: 12,
 	}
 }
 
+func (es *encryptionService) SetMasterPass(masterPass string) {
+	es.masterPass = masterPass
+}
+
 func (es *encryptionService) Encrypt(text string) ([]byte, error) {
+	if es.masterPass == "" {
+		return nil, errors.New("master pass is empty")
+	}
 
 	// создаем соль случайным способом
 	salt := make([]byte, es.saltLen)
@@ -69,6 +76,10 @@ func (es *encryptionService) Encrypt(text string) ([]byte, error) {
 }
 
 func (es *encryptionService) Decrypt(encryptedFields []byte) (string, error) {
+	if es.masterPass == "" {
+		return "", errors.New("master pass is empty")
+	}
+
 	if len(encryptedFields) < es.nonceLen+es.saltLen+1 {
 		return "", errors.New("encrypted data too short")
 	}
@@ -95,7 +106,7 @@ func (es *encryptionService) Decrypt(encryptedFields []byte) (string, error) {
 
 	plaintext, err := aesgcm.Open(nil, nonce, cipherText, nil)
 	if err != nil {
-		return "", fmt.Errorf("decryption failed (wrong password?): %w", err)
+		return "", fmt.Errorf("error masterPass: %w", err)
 	}
 
 	return string(plaintext), nil

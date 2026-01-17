@@ -14,8 +14,15 @@ import (
 type UserService interface {
 	Register(login, password, masterPass string) (string, error)
 	Login(login, password string) (string, error)
+	// Master - метод для проверки валидности мастер пароля
 	Master(masterPass string) error
 	InitToken(TokenService)
+}
+
+// UserMasterService - интерфейс для проверки мастер пароля
+type UserMasterService interface {
+	// Master - метод для проверки валидности мастер пароля
+	Master(masterPass string) error
 }
 
 type userService struct {

@@ -45,7 +45,7 @@ func ValidateModelUserAPI(user model.APIUser) error {
 }
 
 // ValidateModelCredentialAPI - Проверяем обязательные поля Credential
-func ValidateModelCredentialAPI(credential model.Credential) error {
+func ValidateModelCredentialAPI(credential model.CredentialAPI) error {
 	if Validate == nil {
 		Init()
 	}
