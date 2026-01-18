@@ -19,7 +19,7 @@ erDiagram
 		int id PK ""  
 		string login  ""  
 		string password  "hash BCRYPT"  
-        BYTEA code  ""  
+        code BYTEA  ""  
 		datetime created_at  ""  
 		datetime uploaded_at  ""  
 	}
@@ -27,19 +27,21 @@ erDiagram
         int id PK ""  
         int user_id FK ""  
         title string  ""
-        number_enc string  "номер карты"  
-        expiry_enc string  "срок действия"
-        cvv_enc string  "cvv"
-        card_holder_name string  "имя держателя карты"
+        number_enc BYTEA  "номер карты"  
+        expiry_enc BYTEA  "срок действия"
+        cvv_enc BYTEA  "cvv"
+        card_holder_name BYTEA  "имя держателя карты"
         last4 string  "последние 4 цифры"
     }
-    file {
+    files {
         int id PK ""
         int user_id FK ""
-        string path "путь до файла на сервере"
+        string name "имя файла"
+        datetime created_at  ""  
+		datetime uploaded_at  ""  
     }
 	credentials}|--||users:"  "
     bank_cards}|--||users:"  "
-    file}|--||users:"  "
+    files}|--||users:"  "
 
 ```
