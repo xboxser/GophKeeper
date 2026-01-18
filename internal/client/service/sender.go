@@ -10,6 +10,7 @@ import (
 type SenderService interface {
 	SendPost(context.Context, string, []byte) ([]byte, *http.Response, error)
 	SendGet(context.Context, string) ([]byte, *http.Response, error)
+	SendFile(context.Context, string, io.Reader, string) ([]byte, *http.Response, error)
 	SetToken(string)
 }
 
@@ -66,6 +67,31 @@ func (s *senderService) SendGet(ctx context.Context, url string) ([]byte, *http.
 	if s.token != "" {
 		request.Header.Set("Authorization", s.token)
 	}
+
+	response, err := s.client.Do(request)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return body, response, nil
+}
+
+func (s *senderService) SendFile(ctx context.Context, url string, b io.Reader, fileName string) ([]byte, *http.Response, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, s.serverAddress+url, b)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if s.token != "" {
+		request.Header.Set("Authorization", s.token)
+	}
+	request.Header.Set("filename", fileName)
 
 	response, err := s.client.Do(request)
 	if err != nil {

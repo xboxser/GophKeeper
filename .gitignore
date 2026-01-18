@@ -1,3 +1,5 @@
 .vscode
 
 cmd/client/token
+test_file
+upload

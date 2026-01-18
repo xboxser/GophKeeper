@@ -49,11 +49,16 @@ func main() {
 	cardService := service.NewCardService(cardRepository)
 	cardHandler := route.NewCardHandler(cardService, tokenMiddleware)
 
+	fileRepository := repository.NewFileRepository(db, cfg.UploadPath)
+	fileService := service.NewFileService(fileRepository)
+	fileHandler := route.NewFileHandler(fileService, tokenMiddleware)
+
 	chiHandler := handler.NewChiHandler()
 	// добавляем созданные роуты  в основной обработчики
 	chiHandler.AddRoutes(userHandler)
 	chiHandler.AddRoutes(credentialHandler)
 	chiHandler.AddRoutes(cardHandler)
+	chiHandler.AddRoutes(fileHandler)
 
 	server := &http.Server{
 		Addr:    cfg.ServerAddress,

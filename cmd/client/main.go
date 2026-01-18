@@ -34,9 +34,14 @@ func main() {
 	cardService.InitToken(tokenService)
 	cardCommand := command.NewCardHandler(cardService, userService)
 
+	fileService := service.NewFileService(senderService, encryptionService)
+	fileService.InitToken(tokenService)
+	fileCommand := command.NewFileHandler(fileService, userService)
+
 	cli := handler.NewCli(credentialService)
 	cli.AddCommand(userCommand)
 	cli.AddCommand(credentialCommand)
 	cli.AddCommand(cardCommand)
+	cli.AddCommand(fileCommand)
 	cli.Run()
 }

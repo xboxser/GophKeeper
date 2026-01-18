@@ -12,6 +12,7 @@ type ServerConfig struct {
 	DSN            string        `env:"DSN"`
 	JWT_SECRET     string        `env:"JWT_SECRET"`
 	TokenExpiresAt time.Duration `env:"TOKEN_EXPIRES_AT"`
+	UploadPath     string        `env:"UPLOAD_PATH"`
 }
 
 func NewServerConfig() *ServerConfig {
@@ -24,6 +25,7 @@ func NewServerConfig() *ServerConfig {
 
 	jwtSecret := clientFlags.String("jwt", "super_secret_code_JWT", " секретный ключ для проверки подписи jwt токена")
 	tokenExpiresAt := clientFlags.String("exp", "3h", "время жизни токена")
+	uploadPath := clientFlags.String("upload", "../../upload/", "Путь сохранения файлов")
 
 	if cfg.ServerAddress == "" {
 		cfg.ServerAddress = *serverAddress
@@ -35,6 +37,10 @@ func NewServerConfig() *ServerConfig {
 
 	if cfg.JWT_SECRET == "" {
 		cfg.JWT_SECRET = *jwtSecret
+	}
+
+	if cfg.UploadPath == "" {
+		cfg.UploadPath = *uploadPath
 	}
 
 	if cfg.TokenExpiresAt == 0 {
