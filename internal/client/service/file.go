@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/cheggaaa/pb/v3"
 )
 
 type FileService interface {
@@ -37,7 +39,6 @@ func (s *fileService) AddFile(filePath, masterPass string) error {
 		return err
 	}
 	s.SenderService.SetToken(token)
-
 	s.EncryptionService.SetMasterPass(masterPass)
 
 	fileName := filepath.Base(filePath)
@@ -47,14 +48,29 @@ func (s *fileService) AddFile(filePath, masterPass string) error {
 	}
 	defer file.Close()
 
+	stat, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	totalSize := stat.Size()
+
+	// Прогресс-бар
+	bar := pb.Full.Start64(totalSize).SetWidth(80)
+	bar.Set("filename", filepath.Base(filePath))
+
+	// Обёртка с прогрессом
+	reader := bar.NewProxyReader(file)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Second)
 	defer cancel()
 
-	body, response, err := s.SenderService.SendFile(ctx, "/api/files/add", file, fileName)
+	body, response, err := s.SenderService.SendFile(ctx, "/api/files/add", reader, fileName)
 
 	if err != nil {
 		return err
 	}
+
+	bar.Finish()
 
 	fmt.Println(string(body))
 	fmt.Println("code", response.StatusCode)
