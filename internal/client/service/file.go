@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"gophkeeper/internal/model"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -13,6 +15,7 @@ import (
 
 type FileService interface {
 	AddFile(filePath, masterPass string) error
+	ListFile() ([]model.FileAPI, error)
 	InitToken(TokenService)
 }
 
@@ -80,4 +83,32 @@ func (s *fileService) AddFile(filePath, masterPass string) error {
 	}
 
 	return nil
+}
+
+func (s *fileService) ListFile() ([]model.FileAPI, error) {
+	token, err := s.TokenService.GetToken()
+	if err != nil {
+		return nil, err
+	}
+	s.SenderService.SetToken(token)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, response, err := s.SenderService.SendGet(ctx, "/api/files/list")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error status get list files, %v", string(body))
+	}
+
+	var files []model.FileAPI
+	if err = json.Unmarshal(body, &files); err != nil {
+		return nil, err
+	}
+
+	return files, nil
 }

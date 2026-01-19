@@ -1,6 +1,7 @@
 package route
 
 import (
+	"encoding/json"
 	"gophkeeper/internal/model"
 	"gophkeeper/internal/server/handler/middleware"
 	"gophkeeper/internal/server/service"
@@ -26,6 +27,7 @@ func (f *FileHandler) Routes() chi.Router {
 	r := chi.NewRouter()
 	r.Use(f.TokenMiddleware.CheckToken)
 	r.Post("/add", f.addFile)
+	r.Get("/list", f.listFile)
 	//TODO добавить update & delete
 	return r
 }
@@ -66,16 +68,21 @@ func (f *FileHandler) addFile(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"status":"ok"}`))
 }
 
-// func saveTokenToFile(filePath string, token string) error {
-// 	// Получаем директорию из полного пути к файлу
-// 	dir := filepath.Dir(filePath)
+func (f *FileHandler) listFile(w http.ResponseWriter, r *http.Request) {
+	tokenAuth := f.TokenMiddleware.GetUserRequest(r)
 
-// 	fmt.Println(dir)
-// 	// Создаём директорию (и все родительские, если нужно)
-// 	if err := os.MkdirAll(dir, 0755); err != nil {
-// 		return err
-// 	}
+	if tokenAuth.UserID == 0 {
+		http.Error(w, "Invalid user token", http.StatusUnauthorized)
+		return
+	}
 
-// 	// Записываем файл
-// 	return os.WriteFile(filePath+"ffff", []byte(token), 0600)
-// }
+	files, err := f.FileService.ListFile(r.Context(), tokenAuth.UserID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(files)
+}
