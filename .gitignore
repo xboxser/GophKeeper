@@ -3,3 +3,4 @@
 cmd/client/token
 test_file
 upload
+upload_client

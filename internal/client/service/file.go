@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"gophkeeper/internal/client/repository"
 	"gophkeeper/internal/model"
 	"net/http"
 	"os"
@@ -15,6 +16,7 @@ import (
 
 type FileService interface {
 	AddFile(filePath, masterPass string) error
+	DownloadFile(fileName string) error
 	ListFile() ([]model.FileAPI, error)
 	InitToken(TokenService)
 }
@@ -23,12 +25,14 @@ type fileService struct {
 	EncryptionService EncryptionService
 	SenderService     SenderService
 	TokenService      TokenService
+	FileRepository    repository.FileRepository
 }
 
-func NewFileService(senderService SenderService, encryptionService EncryptionService) *fileService {
+func NewFileService(f repository.FileRepository, s SenderService, e EncryptionService) *fileService {
 	return &fileService{
-		EncryptionService: encryptionService,
-		SenderService:     senderService,
+		EncryptionService: e,
+		SenderService:     s,
+		FileRepository:    f,
 	}
 }
 
@@ -64,6 +68,7 @@ func (s *fileService) AddFile(filePath, masterPass string) error {
 	// Обёртка с прогрессом
 	reader := bar.NewProxyReader(file)
 
+	// TODO продумать контекст
 	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Second)
 	defer cancel()
 
@@ -82,6 +87,35 @@ func (s *fileService) AddFile(filePath, masterPass string) error {
 		return fmt.Errorf("error add file, %v", string(body))
 	}
 
+	return nil
+}
+
+func (s *fileService) DownloadFile(fileName string) error {
+	token, err := s.TokenService.GetToken()
+	if err != nil {
+		return err
+	}
+	s.SenderService.SetToken(token)
+
+	// TODO продумать контекст
+	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Second)
+	defer cancel()
+
+	response, err := s.SenderService.SendGetFile(ctx, "/api/files/download/"+fileName)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	fmt.Println("/api/files/download/" + fileName)
+	fmt.Println("status", response.StatusCode)
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("error status download files")
+	}
+
+	err = s.FileRepository.DownloadFile(ctx, response)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

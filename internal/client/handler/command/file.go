@@ -30,7 +30,7 @@ func (s *FileHandler) GetCommands() []*cobra.Command {
 		Run:     s.addFileRun,
 	}
 
-	addFileCmd.Flags().StringP("file", "f", "", "Пароль для шифрования (Обязательный)")
+	addFileCmd.Flags().StringP("file", "f", "", "путь к файлу (обязательный)")
 	addFileCmd.MarkFlagRequired("file")
 	addFileCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
 	addFileCmd.MarkFlagRequired("masterPass")
@@ -42,9 +42,20 @@ func (s *FileHandler) GetCommands() []*cobra.Command {
 		Run:     s.listFileRun,
 	}
 
+	downloadFileCmd := &cobra.Command{
+		Use:     "file-get",
+		Short:   "Скачать файл с сервера",
+		Example: `  todo file-get -f=name.txt`,
+		Run:     s.downloadFileRun,
+	}
+
+	downloadFileCmd.Flags().StringP("file", "f", "", "наименование файла для скачивания с сервера (Обязательный)")
+	downloadFileCmd.MarkFlagRequired("file")
+
 	return []*cobra.Command{
 		addFileCmd,
 		listFileCmd,
+		downloadFileCmd,
 	}
 }
 
@@ -58,7 +69,7 @@ func (s *FileHandler) addFileRun(cmd *cobra.Command, args []string) {
 
 	filePath, err := cmd.Flags().GetString("file")
 	if err != nil || filePath == "" {
-		fmt.Println("❌ Ошибка: укажите пароль (--file или -f)")
+		fmt.Println("❌ Ошибка: путь до файла выгрузки (--file или -f)")
 		return
 	}
 
@@ -102,5 +113,21 @@ func (s *FileHandler) listFileRun(cmd *cobra.Command, args []string) {
 
 	t.SetStyle(table.StyleLight)
 	fmt.Println(t.Render())
+}
 
+func (s *FileHandler) downloadFileRun(cmd *cobra.Command, args []string) {
+	filePath, err := cmd.Flags().GetString("file")
+	if err != nil || filePath == "" {
+		fmt.Println("❌ Ошибка: укажите наименование файла для скачивания (--file или -f)")
+		return
+	}
+
+	err = s.FileService.DownloadFile(filePath)
+
+	if err != nil {
+		fmt.Println("❌ Ошибка скачивания файла:", err)
+		return
+	}
+
+	fmt.Println("✅ Файл", filePath, "скачан")
 }

@@ -34,7 +34,8 @@ func main() {
 	cardService.InitToken(tokenService)
 	cardCommand := command.NewCardHandler(cardService, userService)
 
-	fileService := service.NewFileService(senderService, encryptionService)
+	fileRepository := repository.NewFileRepository(cfg.LocalStorage)
+	fileService := service.NewFileService(fileRepository, senderService, encryptionService)
 	fileService.InitToken(tokenService)
 	fileCommand := command.NewFileHandler(fileService, userService)
 

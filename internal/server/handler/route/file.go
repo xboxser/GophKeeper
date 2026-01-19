@@ -2,6 +2,7 @@ package route
 
 import (
 	"encoding/json"
+	"fmt"
 	"gophkeeper/internal/model"
 	"gophkeeper/internal/server/handler/middleware"
 	"gophkeeper/internal/server/service"
@@ -28,7 +29,8 @@ func (f *FileHandler) Routes() chi.Router {
 	r.Use(f.TokenMiddleware.CheckToken)
 	r.Post("/add", f.addFile)
 	r.Get("/list", f.listFile)
-	//TODO добавить update & delete
+	r.Get("/download/{filename}", f.downloadFile)
+	//TODO добавить delete
 	return r
 }
 
@@ -37,6 +39,7 @@ func (f *FileHandler) Pattern() string {
 	return "/api/files"
 }
 
+// addFile - обработчик добавления файла
 func (f *FileHandler) addFile(w http.ResponseWriter, r *http.Request) {
 	tokenAuth := f.TokenMiddleware.GetUserRequest(r)
 
@@ -57,6 +60,7 @@ func (f *FileHandler) addFile(w http.ResponseWriter, r *http.Request) {
 		Body:     r.Body,
 	}
 
+	//TODO подумать над контекстом
 	err := f.FileService.AddFile(r.Context(), file)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -68,6 +72,7 @@ func (f *FileHandler) addFile(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"status":"ok"}`))
 }
 
+// listFile - обработчик получение списка файлов
 func (f *FileHandler) listFile(w http.ResponseWriter, r *http.Request) {
 	tokenAuth := f.TokenMiddleware.GetUserRequest(r)
 
@@ -85,4 +90,45 @@ func (f *FileHandler) listFile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(files)
+}
+
+// downloadFile - обработчик запроса на скачивание файла
+func (f *FileHandler) downloadFile(w http.ResponseWriter, r *http.Request) {
+	tokenAuth := f.TokenMiddleware.GetUserRequest(r)
+	if tokenAuth.UserID == 0 {
+		http.Error(w, "Invalid user token", http.StatusUnauthorized)
+		return
+	}
+
+	filename := chi.URLParam(r, "filename")
+	if filename == "" {
+		http.Error(w, model.ErrFileEmptyFileName.Error(), http.StatusBadRequest)
+		return
+	}
+
+	file, err := f.FileService.GetFileForName(r.Context(), tokenAuth.UserID, filename)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if file.ID == 0 {
+		http.Error(w, model.ErrFileNotFound.Error(), http.StatusNotFound)
+		return
+	}
+
+	osFile, stat, err := f.FileService.DownloadFile(file)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	defer osFile.Close()
+
+	w.Header().Set("Content-Disposition", "attachment; filename=\""+filename+"\"")
+	w.Header().Set("Accept-Ranges", "bytes")
+	w.Header().Set("Content-Length", fmt.Sprint(stat.Size()))
+	w.Header().Set("Cache-Control", "no-cache")
+
+	http.ServeContent(w, r, filename, stat.ModTime(), osFile)
 }

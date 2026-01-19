@@ -4,11 +4,14 @@ import (
 	"context"
 	"gophkeeper/internal/model"
 	"gophkeeper/internal/server/repository"
+	"os"
 )
 
 type FileService interface {
-	GetFile(ctx context.Context, hash []byte) ([]byte, error)
 	AddFile(ctx context.Context, file model.FileAdd) error
+	DownloadFile(file model.File) (*os.File, os.FileInfo, error)
+
+	GetFileForName(ctx context.Context, userID int, fileName string) (model.File, error)
 	ListFile(ctx context.Context, userID int) ([]model.FileAPI, error)
 }
 
@@ -22,8 +25,8 @@ func NewFileService(fileRepository repository.FileRepository) *fileService {
 	}
 }
 
-func (fs *fileService) GetFile(ctx context.Context, hash []byte) ([]byte, error) {
-	return fs.FileRepository.GetFile(ctx, hash)
+func (fs *fileService) GetFileForName(ctx context.Context, userID int, fileName string) (model.File, error) {
+	return fs.FileRepository.GetFileForName(ctx, userID, fileName)
 }
 
 func (fs *fileService) AddFile(ctx context.Context, file model.FileAdd) error {
@@ -32,4 +35,20 @@ func (fs *fileService) AddFile(ctx context.Context, file model.FileAdd) error {
 
 func (fs *fileService) ListFile(ctx context.Context, userID int) ([]model.FileAPI, error) {
 	return fs.FileRepository.GetList(ctx, userID)
+}
+
+func (fs *fileService) DownloadFile(file model.File) (*os.File, os.FileInfo, error) {
+	// Проверка файла
+	f, err := os.Open(file.FilePath)
+	if err != nil {
+		return nil, nil, model.ErrFileNotFound
+	}
+
+	stat, err := f.Stat()
+	if err != nil {
+		defer f.Close()
+		return nil, nil, err
+	}
+
+	return f, stat, nil
 }

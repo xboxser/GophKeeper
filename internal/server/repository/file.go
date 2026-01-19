@@ -11,11 +11,14 @@ import (
 )
 
 type FileRepository interface {
-	GetFile(ctx context.Context, hash []byte) ([]byte, error)
-	GetFileForName(ctx context.Context, userID int, fileName string) (model.File, error)
-	GetList(ctx context.Context, userID int) ([]model.FileAPI, error)
-
+	// AddFile - добавляет файл в хранилище
 	AddFile(ctx context.Context, file model.FileAdd) error
+
+	// GetFileForName - возвращает информацию по файлу
+	GetFileForName(ctx context.Context, userID int, fileName string) (model.File, error)
+
+	// GetList - возвращает список файлов
+	GetList(ctx context.Context, userID int) ([]model.FileAPI, error)
 }
 
 type fileRepository struct {
@@ -30,12 +33,8 @@ func NewFileRepository(db db.DB, uploadPath string) *fileRepository {
 	}
 }
 
-func (f *fileRepository) GetFile(ctx context.Context, hash []byte) ([]byte, error) {
-	return []byte{}, nil
-}
-
 func (f *fileRepository) AddFile(ctx context.Context, file model.FileAdd) error {
-	path := fmt.Sprintf("%s%d/%s", f.UploadPath, file.UserID, file.FileName)
+	path := f.getFilePath(file.UserID, file.FileName)
 
 	// Создаем папку
 	dir := filepath.Dir(path)
@@ -113,6 +112,7 @@ func (f *fileRepository) GetFileForName(ctx context.Context, userID int, fileNam
 		if err != nil {
 			return model.File{}, err
 		}
+		file.FilePath = f.getFilePath(userID, fileName)
 	}
 
 	return file, nil
@@ -141,4 +141,21 @@ func (f *fileRepository) saveAddFile(ctx context.Context, file model.FileAdd) er
 		return err
 	}
 	return nil
+}
+
+// getFilePath - получить путь до файла
+func (f *fileRepository) getFilePath(userID int, fileName string) string {
+	return fmt.Sprintf("%s%d/%s", f.UploadPath, userID, fileName)
+}
+
+// fileExists - проверяет существование файла и что он не является каталогом
+func (f *fileRepository) fileExists(filePath string) (bool, error) {
+	info, err := os.Stat(filePath)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return !info.IsDir(), nil
 }
