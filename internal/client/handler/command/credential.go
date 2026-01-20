@@ -22,9 +22,9 @@ func NewCredentialHandler(credentialService service.CredentialService, u service
 func (ch *CredentialHandler) GetCommands() []*cobra.Command {
 
 	addCredentialCmd := &cobra.Command{
-		Use:     "addCredential",
+		Use:     "credential-add",
 		Short:   "Добавить новые учетные записи",
-		Example: `  todo addCredential --login "userName" --password "password" --masterPass "password"`,
+		Example: `  todo credential-add --login "userName" --password "password" --masterPass "password"`,
 		Run:     ch.addCredentialRun,
 	}
 	addCredentialCmd.Flags().StringP("login", "l", "", "Логин (обязательный)")
@@ -35,9 +35,9 @@ func (ch *CredentialHandler) GetCommands() []*cobra.Command {
 	addCredentialCmd.MarkFlagRequired("masterPass")
 
 	getCredentialCmd := &cobra.Command{
-		Use:     "getCredential",
+		Use:     "credential-get",
 		Short:   "Получить список учетных данных",
-		Example: `  todo getCredential --masterPass "password"`,
+		Example: `  todo credential-get --masterPass "password"`,
 		Run:     ch.getCredentialRun,
 	}
 	getCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")

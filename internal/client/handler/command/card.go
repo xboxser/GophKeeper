@@ -22,9 +22,9 @@ func NewCardHandler(cardService service.CardService, u service.UserMasterService
 }
 func (ch *CardHandler) GetCommands() []*cobra.Command {
 	addCardCmd := &cobra.Command{
-		Use:     "addCard",
+		Use:     "card-add",
 		Short:   "Добавить новую банковскую карту",
-		Example: `  todo addCard --title "Название карты" --number "1234 1234 1234 1234" --expiry "12/23" --card_holder "Имя и фамилия" --cvv "123"`,
+		Example: `  todo card-add --title "Название карты" --number "1234 1234 1234 1234" --expiry "12/23" --card_holder "Имя и фамилия" --cvv "123"`,
 		Run:     ch.addCardRun,
 	}
 	addCardCmd.Flags().StringP("title", "t", "", "Произвольное название карты (обязательное)")
@@ -41,7 +41,7 @@ func (ch *CardHandler) GetCommands() []*cobra.Command {
 	addCardCmd.MarkFlagRequired("masterPass")
 
 	getCardCmd := &cobra.Command{
-		Use:     "getCard",
+		Use:     "card-get",
 		Short:   "Получить список банковских карт",
 		Example: `  todo getCard --masterPass "password"`,
 		Run:     ch.getCardRun,
