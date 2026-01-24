@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"gophkeeper/internal/config"
+	"gophkeeper/internal/server/config"
 	"gophkeeper/internal/server/db"
 	"gophkeeper/internal/server/handler"
 	"gophkeeper/internal/server/handler/middleware"
@@ -12,6 +12,10 @@ import (
 	"gophkeeper/internal/server/service"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
@@ -60,13 +64,38 @@ func main() {
 	chiHandler.AddRoutes(cardHandler)
 	chiHandler.AddRoutes(fileHandler)
 
+	chiHandler.Router.Get("/api/data", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			fmt.Println("f")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"message": "Данные зашифрованы TLS", "host": "localhost"}`))
+	})
+
 	server := &http.Server{
 		Addr:    cfg.ServerAddress,
 		Handler: chiHandler.Router,
 	}
 
-	// TODO запустить сервер в отдельном потоке
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("HTTP server failed: %v", err)
+	// канал для получения сигналов завершения
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+
+	// Запускаем сервер в отдельной горутине
+	go func() {
+		if err := server.ListenAndServeTLS(cfg.TLS_certFile, cfg.TLS_keyFile); err != nil && err != http.ErrServerClosed {
+			panic(err)
+		}
+	}()
+
+	// Ждём сигнал остановки
+	<-stop
+
+	ctxStopServer, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctxStopServer); err != nil {
+		log.Fatalf("Ошибка при завершении сервера: %v\n", err)
+		return
 	}
 }

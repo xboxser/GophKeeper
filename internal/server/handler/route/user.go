@@ -39,7 +39,7 @@ func (u *UserHandler) Routes() chi.Router {
 	protected.Get("/code", u.code)
 	return r
 }
-func (u *UserHandler) Pattern() string {
+func (_ *UserHandler) Pattern() string {
 	return "/api/user"
 }
 

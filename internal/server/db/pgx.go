@@ -5,7 +5,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"gophkeeper/internal/config"
+	"gophkeeper/internal/server/config"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"

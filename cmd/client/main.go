@@ -2,20 +2,18 @@ package main
 
 import (
 	"fmt"
+	"gophkeeper/internal/client/config"
 	"gophkeeper/internal/client/handler"
 	"gophkeeper/internal/client/handler/command"
 	"gophkeeper/internal/client/repository"
 	"gophkeeper/internal/client/service"
-	"gophkeeper/internal/config"
-	"net/http"
 )
 
 func main() {
 	cfg := config.NewClientConfig()
 	fmt.Println("Start client, for server address", cfg.ServerAddress)
 
-	client := &http.Client{}
-	senderService := service.NewSenderService(client, cfg.ServerAddress)
+	senderService := service.NewSenderService(cfg.TLS_certFile, cfg.ServerAddress)
 
 	encryptionService := service.NewEncryptionService()
 

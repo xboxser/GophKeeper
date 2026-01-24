@@ -40,3 +40,8 @@ create100:
 	mkdir -p ./test_file/
 	dd if=/dev/zero of=./test_file/100GB_file bs=1G count=100
 
+createCertificates:
+	cd ./certificate/ &&	openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes \
+	-subj "/C=RU/ST=Moscow/L=Moscow/O=GophKeeper/OU=Server/CN=localhost" \
+	-addext "subjectAltName=DNS:localhost,DNS:127.0.0.1,IP:127.0.0.1"
+

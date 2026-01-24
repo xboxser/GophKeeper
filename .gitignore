@@ -1,4 +1,5 @@
 .vscode
+*.pem
 
 cmd/client/token
 test_file

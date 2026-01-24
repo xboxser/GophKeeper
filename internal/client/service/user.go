@@ -141,9 +141,6 @@ func (s *userService) Master(masterPass string) error {
 		return err
 	}
 
-	fmt.Println("code", code)
-	fmt.Println("body", string(body))
-
 	if err = service.ValidateHash(code.Hash, masterPass); err != nil {
 		return err
 	}

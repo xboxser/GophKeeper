@@ -3,26 +3,33 @@ module gophkeeper
 go 1.25.5
 
 require (
+	github.com/caarlos0/env/v6 v6.10.1
+	github.com/cheggaaa/pb/v3 v3.1.7
+	github.com/go-chi/chi/v5 v5.2.3
+	github.com/go-playground/validator/v10 v10.30.1
+	github.com/golang-jwt/jwt/v4 v4.5.2
+	github.com/golang-migrate/migrate/v4 v4.19.1
+	github.com/golang/mock v1.6.0
+	github.com/google/uuid v1.6.0
+	github.com/jackc/pgx/v5 v5.8.0
+	github.com/jedib0t/go-pretty/v6 v6.7.8
+	github.com/spf13/cobra v1.10.2
+	github.com/stretchr/testify v1.11.1
+	golang.org/x/crypto v0.46.0
+)
+
+require (
 	github.com/VividCortex/ewma v1.2.0 // indirect
-	github.com/caarlos0/env/v6 v6.10.1 // indirect
-	github.com/cheggaaa/pb/v3 v3.1.7 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
-	github.com/go-chi/chi/v5 v5.2.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.30.1 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
-	github.com/golang-migrate/migrate/v4 v4.19.1 // indirect
-	github.com/golang/mock v1.6.0 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
-	github.com/jackc/pgx/v5 v5.8.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
-	github.com/jedib0t/go-pretty/v6 v6.7.8 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
@@ -30,10 +37,8 @@ require (
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/spf13/cobra v1.10.2 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/stretchr/testify v1.11.1 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect

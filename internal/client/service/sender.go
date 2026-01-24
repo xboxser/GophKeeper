@@ -3,7 +3,11 @@ package service
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"io"
+	"os"
+
 	"net/http"
 )
 
@@ -21,7 +25,26 @@ type senderService struct {
 	token         string
 }
 
-func NewSenderService(client *http.Client, serverAddress string) *senderService {
+func NewSenderService(certPath string, serverAddress string) *senderService {
+	tr := &http.Transport{}
+	if certPath != "" {
+		certPEM, err := os.ReadFile(certPath)
+		if err != nil {
+			panic(err)
+		}
+
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(certPEM)
+
+		tr = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: caCertPool,
+			},
+		}
+	}
+
+	client := &http.Client{Transport: tr}
+
 	return &senderService{
 		client:        client,
 		serverAddress: serverAddress,
