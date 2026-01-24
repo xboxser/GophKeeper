@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//go:generate mockgen -source=user.go -destination=../../../mocks/server/repository/user_mock.go -package=repository
 type UserRepository interface {
 	GetUserForLogin(context.Context, string) (model.User, error)
 	RegisterUser(context.Context, model.APIUser) (int, error)

@@ -7,9 +7,13 @@ test:
 
 # Запустить все авто тесты с подсчетом процента покрытия
 testPC:
-	go test -v -coverprofile=coverage.out ./...
+	go test -v -coverprofile=coverage.out ./internal/...
 	go tool cover -func=coverage.out | grep "total:"
 	rm coverage.out
+
+# генерируем код
+gen:
+	go generate ./...
 
 # Остановить выполнение PostgreSQL,
 # чтобы запустить в докере
