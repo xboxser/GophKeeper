@@ -12,6 +12,7 @@ import (
 )
 
 type SenderService interface {
+	SendDelete(context.Context, string) ([]byte, *http.Response, error)
 	SendPost(context.Context, string, []byte) ([]byte, *http.Response, error)
 	SendGet(context.Context, string) ([]byte, *http.Response, error)
 	SendGetFile(ctx context.Context, url string) (*http.Response, error)
@@ -56,6 +57,30 @@ func NewSenderService(certPath string, serverAddress string) *senderService {
 // При его наличии добавляться в запросы по умолчанию
 func (s *senderService) SetToken(token string) {
 	s.token = token
+}
+
+func (s *senderService) SendDelete(ctx context.Context, url string) ([]byte, *http.Response, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodDelete, s.serverAddress+url, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if s.token != "" {
+		request.Header.Set("Authorization", s.token)
+	}
+
+	response, err := s.client.Do(request)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return body, response, nil
 }
 
 func (s *senderService) SendPost(ctx context.Context, url string, json []byte) ([]byte, *http.Response, error) {

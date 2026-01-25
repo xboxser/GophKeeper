@@ -60,6 +60,16 @@ credential-get -m=secret
   -m, --masterPass string   Пароль для шифрования (Обязательный)
 ```
 
+
+### Удаление элемента из учетных данных
+Команда: `credential-del`
+```
+credential-get -m=secret -l=login-test
+
+  -m, --masterPass string   Пароль для шифрования (Обязательный)
+  -l, --login string        Логин (обязательный)
+```
+
 ## Данные банковских карт
 
 ### Добавление банковской карты

@@ -43,9 +43,21 @@ func (ch *CredentialHandler) GetCommands() []*cobra.Command {
 	getCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
 	getCredentialCmd.MarkFlagRequired("masterPass")
 
+	deleteCredentialCmd := &cobra.Command{
+		Use:     "credential-del",
+		Short:   "Получить список учетных данных",
+		Example: `  todo credential-del --masterPass "password" --login "userName"`,
+		Run:     ch.deleteCredentialRun,
+	}
+	deleteCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	deleteCredentialCmd.MarkFlagRequired("masterPass")
+	deleteCredentialCmd.Flags().StringP("login", "l", "", "Логин (обязательный)")
+	deleteCredentialCmd.MarkFlagRequired("login")
+
 	return []*cobra.Command{
 		addCredentialCmd,
 		getCredentialCmd,
+		deleteCredentialCmd,
 	}
 }
 
@@ -80,6 +92,35 @@ func (ch *CredentialHandler) addCredentialRun(cmd *cobra.Command, _ []string) {
 	}
 
 	fmt.Printf("✅ Запись успешно добавлена\n")
+}
+
+func (ch *CredentialHandler) deleteCredentialRun(cmd *cobra.Command, _ []string) {
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+
+	err = ch.UserMasterService.Master(masterPass)
+	if err != nil {
+		fmt.Println("❌ Ошибка проверки мастер пароля:", err)
+		return
+	}
+
+	login, err := cmd.Flags().GetString("login")
+	if err != nil || login == "" {
+		fmt.Println("❌ Ошибка: укажите логин (--login или -l)")
+		return
+	}
+
+	err = ch.CredentialService.DeleteCredential(login)
+
+	if err != nil {
+		fmt.Println("❌ Ошибка:", err)
+		return
+	}
+
+	fmt.Printf("✅ Запись успешно удалена\n")
 }
 
 func (ch *CredentialHandler) getCredentialRun(cmd *cobra.Command, _ []string) {

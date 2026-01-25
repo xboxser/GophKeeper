@@ -33,6 +33,7 @@ func (ch *CredentialHandler) Routes() chi.Router {
 	r.Use(ch.TokenMiddleware.CheckToken)
 	r.Get("/", ch.getCredentials)
 	r.Post("/", ch.addCredential)
+	r.Delete("/{login}", ch.deleteCredential)
 	//TODO добавить update & delete
 	return r
 }
@@ -40,6 +41,36 @@ func (ch *CredentialHandler) Routes() chi.Router {
 // Pattern - поддерживает интерфейс RouteChi
 func (_ *CredentialHandler) Pattern() string {
 	return "/api/credentials"
+}
+
+func (ch *CredentialHandler) deleteCredential(w http.ResponseWriter, r *http.Request) {
+	tokenAuth := ch.TokenMiddleware.GetUserRequest(r)
+	if tokenAuth.UserID == 0 {
+		http.Error(w, "Invalid user token", http.StatusUnauthorized)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	login := chi.URLParam(r, "login")
+	if login == "" {
+		http.Error(w, model.ErrCredentialEmptyLogin.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := ch.CredentialService.DeleteCredential(ctx, login, tokenAuth.UserID)
+	if err != nil {
+		if errors.Is(err, model.ErrCredentialNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+
 }
 
 func (ch *CredentialHandler) getCredentials(w http.ResponseWriter, r *http.Request) {

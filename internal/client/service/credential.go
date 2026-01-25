@@ -10,8 +10,9 @@ import (
 )
 
 type CredentialService interface {
-	GetCredentials(string) ([]model.Credential, error)
 	AddCredential(login, password, masterPass string) error
+	DeleteCredential(login string) error
+	GetCredentials(string) ([]model.Credential, error)
 	InitToken(TokenService)
 }
 
@@ -33,6 +34,30 @@ func NewCredentialService(senderService SenderService, encryptionService Encrypt
 // InitToken - добавляем сервис токена для работы с ним
 func (s *credentialService) InitToken(tokenService TokenService) {
 	s.TokenService = tokenService
+}
+
+func (s *credentialService) DeleteCredential(login string) error {
+	token, err := s.TokenService.GetToken()
+	if err != nil {
+		return err
+	}
+	s.SenderService.SetToken(token)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, response, err := s.SenderService.SendDelete(ctx, "/api/credentials/"+login)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("status code", response.StatusCode)
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("error delete credentials, %v", string(body))
+	}
+	return nil
 }
 
 func (s *credentialService) GetCredentials(masterPass string) ([]model.Credential, error) {
