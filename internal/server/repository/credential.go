@@ -11,6 +11,7 @@ type CredentialRepository interface {
 	DeleteCredential(ctx context.Context, login string, userID int) error
 	GetCredentials(ctx context.Context, userID int) ([]model.CredentialAPI, error)
 	GetCredential(ctx context.Context, login string, userID int) (model.CredentialAPI, error)
+	UpdateCredential(ctx context.Context, credential model.CredentialAPI, userID int) error
 }
 
 type CredentialDB struct {
@@ -77,4 +78,13 @@ func (c *CredentialDB) GetCredentials(ctx context.Context, userID int) ([]model.
 		credentials = append(credentials, credential)
 	}
 	return credentials, nil
+}
+
+func (c *CredentialDB) UpdateCredential(ctx context.Context, credential model.CredentialAPI, userID int) error {
+	query := `UPDATE credentials SET login = $2, password = $3 WHERE user_id = $1 AND login = $2`
+	_, err := c.DB.Exec(ctx, query, userID, credential.Login, credential.Password)
+	if err != nil {
+		return err
+	}
+	return nil
 }

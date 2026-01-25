@@ -34,7 +34,7 @@ func (ch *CredentialHandler) Routes() chi.Router {
 	r.Get("/", ch.getCredentials)
 	r.Post("/", ch.addCredential)
 	r.Delete("/{login}", ch.deleteCredential)
-	//TODO добавить update & delete
+	r.Put("/", ch.updateCredential)
 	return r
 }
 
@@ -128,6 +128,48 @@ func (ch *CredentialHandler) addCredential(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		if errors.Is(err, model.ErrCredentialDuplicate) {
 			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (ch *CredentialHandler) updateCredential(w http.ResponseWriter, r *http.Request) {
+	tokenAuth := ch.TokenMiddleware.GetUserRequest(r)
+
+	if tokenAuth.UserID == 0 {
+		http.Error(w, "Invalid user token", http.StatusUnauthorized)
+		return
+	}
+
+	var credential model.CredentialAPI
+	var buf bytes.Buffer
+	_, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err = json.Unmarshal(buf.Bytes(), &credential); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := validator.ValidateModelCredentialAPI(credential); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	err = ch.CredentialService.UpdateCredential(ctx, credential, tokenAuth.UserID)
+	if err != nil {
+		if errors.Is(err, model.ErrCardDuplicate) {
+			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)

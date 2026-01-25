@@ -12,8 +12,10 @@ import (
 )
 
 type SenderService interface {
+	//TODO причесать весь этот звернец методов, кучу дублирующего кода
 	SendDelete(context.Context, string) ([]byte, *http.Response, error)
 	SendPost(context.Context, string, []byte) ([]byte, *http.Response, error)
+	SendPut(context.Context, string, []byte) ([]byte, *http.Response, error)
 	SendGet(context.Context, string) ([]byte, *http.Response, error)
 	SendGetFile(ctx context.Context, url string) (*http.Response, error)
 	SendFile(context.Context, string, io.Reader, string) ([]byte, *http.Response, error)
@@ -85,6 +87,30 @@ func (s *senderService) SendDelete(ctx context.Context, url string) ([]byte, *ht
 
 func (s *senderService) SendPost(ctx context.Context, url string, json []byte) ([]byte, *http.Response, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, s.serverAddress+url, bytes.NewBuffer(json))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if s.token != "" {
+		request.Header.Set("Authorization", s.token)
+	}
+
+	response, err := s.client.Do(request)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return body, response, nil
+}
+
+func (s *senderService) SendPut(ctx context.Context, url string, json []byte) ([]byte, *http.Response, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodPut, s.serverAddress+url, bytes.NewBuffer(json))
 	if err != nil {
 		return nil, nil, err
 	}

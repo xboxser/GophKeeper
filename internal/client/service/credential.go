@@ -13,6 +13,8 @@ type CredentialService interface {
 	AddCredential(login, password, masterPass string) error
 	DeleteCredential(login string) error
 	GetCredentials(string) ([]model.Credential, error)
+
+	UpdateCredential(login, password, masterPass string) error
 	InitToken(TokenService)
 }
 
@@ -123,6 +125,39 @@ func (s *credentialService) AddCredential(login, password, masterPass string) er
 	defer cancel()
 
 	body, response, err := s.SenderService.SendPost(ctx, "/api/credentials", json)
+
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("error add credentials, %v", string(body))
+	}
+	return nil
+}
+
+func (s *credentialService) UpdateCredential(login, password, masterPass string) error {
+	token, err := s.TokenService.GetToken()
+	if err != nil {
+		return err
+	}
+	s.SenderService.SetToken(token)
+
+	s.EncryptionService.SetMasterPass(masterPass)
+	passHash, err := s.EncryptionService.Encrypt(password)
+	if err != nil {
+		return err
+	}
+
+	json, err := json.Marshal(model.CredentialAPI{Login: login, Password: passHash})
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, response, err := s.SenderService.SendPut(ctx, "/api/credentials", json)
 
 	if err != nil {
 		return err

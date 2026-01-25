@@ -70,6 +70,17 @@ credential-get -m=secret -l=login-test
   -l, --login string        Логин (обязательный)
 ```
 
+### Обновление элемента из учетных данных
+Команда: `credential-update`
+```
+credential-update -m=secret -l=login-test2 -p=qwerty123
+
+  -l, --login string        Логин (обязательный)
+  -m, --masterPass string   Пароль для шифрования (Обязательный)
+  -p, --password string     Пароль (обязательный)
+```
+
+
 ## Данные банковских карт
 
 ### Добавление банковской карты

@@ -54,10 +54,24 @@ func (ch *CredentialHandler) GetCommands() []*cobra.Command {
 	deleteCredentialCmd.Flags().StringP("login", "l", "", "Логин (обязательный)")
 	deleteCredentialCmd.MarkFlagRequired("login")
 
+	updateCredentialCmd := &cobra.Command{
+		Use:     "credential-update",
+		Short:   "Обновление учетной записи",
+		Example: `  todo credential-update --login "userName" --password "password" --masterPass "password"`,
+		Run:     ch.updateCredentialRun,
+	}
+	updateCredentialCmd.Flags().StringP("login", "l", "", "Логин (обязательный)")
+	updateCredentialCmd.MarkFlagRequired("login")
+	updateCredentialCmd.Flags().StringP("password", "p", "", "Пароль (обязательный)")
+	updateCredentialCmd.MarkFlagRequired("password")
+	updateCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	updateCredentialCmd.MarkFlagRequired("masterPass")
+
 	return []*cobra.Command{
 		addCredentialCmd,
 		getCredentialCmd,
 		deleteCredentialCmd,
+		updateCredentialCmd,
 	}
 }
 
@@ -150,4 +164,37 @@ func (ch *CredentialHandler) getCredentialRun(cmd *cobra.Command, _ []string) {
 		fmt.Printf("   Пароль: %s\n", string(cred.Password))
 		fmt.Println()
 	}
+}
+
+func (ch *CredentialHandler) updateCredentialRun(cmd *cobra.Command, _ []string) {
+	login, err := cmd.Flags().GetString("login")
+	if err != nil || login == "" {
+		fmt.Println("❌ Ошибка: укажите логин (--login или -l)")
+		return
+	}
+	password, err := cmd.Flags().GetString("password")
+	if err != nil || password == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--password или -p)")
+		return
+	}
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+
+	err = ch.UserMasterService.Master(masterPass)
+	if err != nil {
+		fmt.Println("❌ Ошибка проверки мастер пароля:", err)
+		return
+	}
+
+	err = ch.CredentialService.UpdateCredential(login, password, masterPass)
+
+	if err != nil {
+		fmt.Println("❌ Ошибка:", err)
+		return
+	}
+
+	fmt.Printf("✅ Запись успешно обновлена\n")
 }
