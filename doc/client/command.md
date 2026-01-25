@@ -23,7 +23,7 @@ registration -l=login-test -p=password -m=secret
 
 Команда: `login`
 ```
-login -l=login-test -p=password -m=secret
+login -l=login-test -p=password
 
   -l, --login string        Логин (Обязательный)     
   -p, --password string     Пароль (Обязательный)

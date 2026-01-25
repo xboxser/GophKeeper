@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"gophkeeper/internal/model"
 	"gophkeeper/internal/server/handler/middleware"
 	"gophkeeper/internal/server/service"
@@ -37,7 +38,7 @@ func (ch *CredentialHandler) Routes() chi.Router {
 }
 
 // Pattern - поддерживает интерфейс RouteChi
-func (ch *CredentialHandler) Pattern() string {
+func (_ *CredentialHandler) Pattern() string {
 	return "/api/credentials"
 }
 
@@ -94,6 +95,10 @@ func (ch *CredentialHandler) addCredential(w http.ResponseWriter, r *http.Reques
 
 	err = ch.CredentialService.AddCredential(ctx, credential, tokenAuth.UserID)
 	if err != nil {
+		if errors.Is(err, model.ErrCredentialDuplicate) {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

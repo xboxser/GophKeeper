@@ -49,7 +49,7 @@ func (ch *CredentialHandler) GetCommands() []*cobra.Command {
 	}
 }
 
-func (ch *CredentialHandler) addCredentialRun(cmd *cobra.Command, args []string) {
+func (ch *CredentialHandler) addCredentialRun(cmd *cobra.Command, _ []string) {
 	login, err := cmd.Flags().GetString("login")
 	if err != nil || login == "" {
 		fmt.Println("❌ Ошибка: укажите логин (--login или -l)")
@@ -82,7 +82,7 @@ func (ch *CredentialHandler) addCredentialRun(cmd *cobra.Command, args []string)
 	fmt.Printf("✅ Запись успешно добавлена\n")
 }
 
-func (ch *CredentialHandler) getCredentialRun(cmd *cobra.Command, args []string) {
+func (ch *CredentialHandler) getCredentialRun(cmd *cobra.Command, _ []string) {
 	masterPass, err := cmd.Flags().GetString("masterPass")
 	if err != nil || masterPass == "" {
 		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")

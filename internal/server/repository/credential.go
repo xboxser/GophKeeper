@@ -8,6 +8,7 @@ import (
 
 type CredentialRepository interface {
 	GetCredentials(ctx context.Context, userID int) ([]model.CredentialAPI, error)
+	GetCredential(ctx context.Context, login string, userID int) (model.CredentialAPI, error)
 	AddCredential(ctx context.Context, credential model.CredentialAPI, userID int) error
 }
 
@@ -48,4 +49,22 @@ func (c *CredentialDB) AddCredential(ctx context.Context, credential model.Crede
 		return err
 	}
 	return nil
+}
+
+func (c *CredentialDB) GetCredential(ctx context.Context, login string, userID int) (model.CredentialAPI, error) {
+	credential := model.CredentialAPI{}
+	rows, err := c.DB.Query(ctx, "SELECT login, password FROM credentials WHERE user_id = $1 AND login = $2 LIMIT 1", userID, login)
+	if err != nil {
+		return credential, err
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		err := rows.Scan(&credential.Login, &credential.Password)
+		if err != nil {
+			return model.CredentialAPI{}, err
+		}
+
+	}
+	return credential, nil
 }

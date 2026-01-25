@@ -26,6 +26,15 @@ func (s *credentialService) GetCredentials(ctx context.Context, userID int) ([]m
 }
 
 func (s *credentialService) AddCredential(ctx context.Context, credential model.CredentialAPI, userID int) error {
+	// ищем наличие уже созданных логинов у пользователя
+	credentialBD, err := s.credentialRepository.GetCredential(ctx, credential.Login, userID)
+	if err != nil {
+		return err
+	}
+	if credentialBD.Login != "" {
+		return model.ErrCredentialDuplicate
+	}
+
 	return s.credentialRepository.AddCredential(ctx, credential, userID)
 
 }

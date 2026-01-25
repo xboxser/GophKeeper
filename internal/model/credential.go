@@ -1,5 +1,11 @@
 package model
 
+import "errors"
+
+var (
+	ErrCredentialDuplicate = errors.New("error duplicate record Credential")
+)
+
 type CredentialAPI struct {
 	Login    string `json:"login" validate:"required"`
 	Password []byte `json:"password" validate:"required"`
