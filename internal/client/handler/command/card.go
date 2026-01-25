@@ -55,7 +55,7 @@ func (ch *CardHandler) GetCommands() []*cobra.Command {
 	}
 }
 
-func (ch *CardHandler) getCardRun(cmd *cobra.Command, args []string) {
+func (ch *CardHandler) getCardRun(cmd *cobra.Command, _ []string) {
 	masterPass, err := cmd.Flags().GetString("masterPass")
 	if err != nil || masterPass == "" {
 		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
@@ -88,7 +88,7 @@ func (ch *CardHandler) getCardRun(cmd *cobra.Command, args []string) {
 	}
 }
 
-func (ch *CardHandler) addCardRun(cmd *cobra.Command, args []string) {
+func (ch *CardHandler) addCardRun(cmd *cobra.Command, _ []string) {
 	masterPass, err := cmd.Flags().GetString("masterPass")
 	if err != nil || masterPass == "" {
 		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")

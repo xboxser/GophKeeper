@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"gophkeeper/internal/model"
 	"gophkeeper/internal/server/handler/middleware"
 	"gophkeeper/internal/server/service"
@@ -37,7 +38,7 @@ func (ch *CardHandler) Routes() chi.Router {
 }
 
 // Pattern - поддерживает интерфейс RouteChi
-func (ch *CardHandler) Pattern() string {
+func (_ *CardHandler) Pattern() string {
 	return "/api/card"
 }
 
@@ -92,8 +93,12 @@ func (ch *CardHandler) addCard(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	err = ch.CardService.AddCard(ctx, card, tokenAuth.UserID)
+	err = ch.CardService.AddCard(ctx, &card, tokenAuth.UserID)
 	if err != nil {
+		if errors.Is(err, model.ErrCardDuplicate) {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gophkeeper/internal/model"
 	"net/http"
+	"regexp"
 	"time"
 )
 
@@ -114,6 +115,8 @@ func (s *cardService) ConvertToCardAPI(card model.Card) (model.CardAPI, error) {
 	}
 	var err error
 
+	cardAPI.Last4 = getLast4(card.Number)
+
 	cardAPI.Number, err = s.EncryptionService.Encrypt(card.Number)
 	if err != nil {
 		return model.CardAPI{}, err
@@ -167,4 +170,11 @@ func (s *cardService) ConvertToCard(cardAPI model.CardAPI) (model.Card, error) {
 
 	return card, nil
 
+}
+
+// getLast4 - получить последние 4 цифры карты
+func getLast4(number string) string {
+	var digitRegexp = regexp.MustCompile(`[^\d]`)
+	number = digitRegexp.ReplaceAllString(number, "")
+	return number[len(number)-4:]
 }
