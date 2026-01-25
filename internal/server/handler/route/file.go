@@ -35,7 +35,7 @@ func (f *FileHandler) Routes() chi.Router {
 }
 
 // Pattern - поддерживает интерфейс RouteChi
-func (f *FileHandler) Pattern() string {
+func (_ *FileHandler) Pattern() string {
 	return "/api/files"
 }
 
@@ -69,7 +69,6 @@ func (f *FileHandler) addFile(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"ok"}`))
 }
 
 // listFile - обработчик получение списка файлов

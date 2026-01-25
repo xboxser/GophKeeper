@@ -37,7 +37,7 @@ func (s *sessionService) GetSession(ctx context.Context, code string) (model.Tok
 }
 
 func (s *sessionService) AddSession(ctx context.Context, tokenAuth model.TokenAuth) (model.Session, error) {
-	uuid := uuid.New().String()
+	uuid := uuid.NewString()
 	if uuid == "" {
 		return model.Session{}, model.ErrSessionGenerateUUID
 	}

@@ -59,7 +59,7 @@ func (s *FileHandler) GetCommands() []*cobra.Command {
 	}
 }
 
-func (s *FileHandler) addFileRun(cmd *cobra.Command, args []string) {
+func (s *FileHandler) addFileRun(cmd *cobra.Command, _ []string) {
 
 	masterPass, err := cmd.Flags().GetString("masterPass")
 	if err != nil || masterPass == "" {
@@ -88,7 +88,7 @@ func (s *FileHandler) addFileRun(cmd *cobra.Command, args []string) {
 
 }
 
-func (s *FileHandler) listFileRun(cmd *cobra.Command, args []string) {
+func (s *FileHandler) listFileRun(_ *cobra.Command, _ []string) {
 
 	files, err := s.FileService.ListFile()
 
@@ -115,7 +115,7 @@ func (s *FileHandler) listFileRun(cmd *cobra.Command, args []string) {
 	fmt.Println(t.Render())
 }
 
-func (s *FileHandler) downloadFileRun(cmd *cobra.Command, args []string) {
+func (s *FileHandler) downloadFileRun(cmd *cobra.Command, _ []string) {
 	filePath, err := cmd.Flags().GetString("file")
 	if err != nil || filePath == "" {
 		fmt.Println("❌ Ошибка: укажите наименование файла для скачивания (--file или -f)")

@@ -32,7 +32,6 @@ func NewUserService(userRepository repository.UserRepository, tokenService Token
 // Register - сервис регистрации пользователя
 func (u *userService) Register(ctx context.Context, apiUser model.APIUser) (string, error) {
 	user, err := u.UserRepository.GetUserForLogin(ctx, apiUser.Login)
-
 	if err != nil {
 		return "", err
 	}
@@ -64,6 +63,7 @@ func (u *userService) Register(ctx context.Context, apiUser model.APIUser) (stri
 	return token, nil
 }
 
+// Login - сервис авторизации пользователя
 func (u *userService) Login(ctx context.Context, apiUser model.APIUser) (string, error) {
 	user, err := u.UserRepository.GetUserForLogin(ctx, apiUser.Login)
 
@@ -97,6 +97,7 @@ func (u *userService) Login(ctx context.Context, apiUser model.APIUser) (string,
 	return token, nil
 }
 
+// GetUserForID - получение пользователя по ID
 func (u *userService) GetUserForID(ctx context.Context, userID int) (model.User, error) {
 	user, err := u.UserRepository.GetUserForID(ctx, userID)
 	if err != nil {

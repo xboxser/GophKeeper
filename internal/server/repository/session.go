@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"gophkeeper/internal/model"
+	"sync"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type SessionRepository interface {
 
 type SessionMemory struct {
 	sessions map[string]model.Session
+	mutex    sync.Mutex
 }
 
 func NewSessionMemory() *SessionMemory {
@@ -22,8 +24,12 @@ func NewSessionMemory() *SessionMemory {
 	}
 }
 
+// GetSession - получение сессии
 func (sm *SessionMemory) GetSession(ctx context.Context, code string) (model.Session, error) {
+	sm.mutex.Lock()
 	session, ok := sm.sessions[code]
+	sm.mutex.Unlock()
+
 	if !ok {
 		return model.Session{}, model.ErrSessionNotFound
 	}
@@ -39,12 +45,18 @@ func (sm *SessionMemory) GetSession(ctx context.Context, code string) (model.Ses
 	return session, nil
 }
 
-func (sm *SessionMemory) AddSession(ctx context.Context, session model.Session) error {
+// AddSession - добавление сессии
+func (sm *SessionMemory) AddSession(_ context.Context, session model.Session) error {
+	sm.mutex.Lock()
 	sm.sessions[session.UUID] = session
+	sm.mutex.Unlock()
 	return nil
 }
 
-func (sm *SessionMemory) DeleteSession(ctx context.Context, code string) error {
+// DeleteSession - удаление сессии
+func (sm *SessionMemory) DeleteSession(_ context.Context, code string) error {
+	sm.mutex.Lock()
 	delete(sm.sessions, code)
+	sm.mutex.Unlock()
 	return nil
 }

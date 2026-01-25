@@ -40,6 +40,7 @@ func (s *fileService) InitToken(tokenService TokenService) {
 	s.TokenService = tokenService
 }
 
+// AddFile - загрузка файла на сервер
 func (s *fileService) AddFile(filePath, masterPass string) error {
 	token, err := s.TokenService.GetToken()
 	if err != nil {
@@ -80,9 +81,6 @@ func (s *fileService) AddFile(filePath, masterPass string) error {
 
 	bar.Finish()
 
-	fmt.Println(string(body))
-	fmt.Println("code", response.StatusCode)
-
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("error add file, %v", string(body))
 	}
@@ -90,6 +88,7 @@ func (s *fileService) AddFile(filePath, masterPass string) error {
 	return nil
 }
 
+// DownloadFile - Скачивание файла с сервера
 func (s *fileService) DownloadFile(fileName string) error {
 	token, err := s.TokenService.GetToken()
 	if err != nil {
@@ -106,8 +105,7 @@ func (s *fileService) DownloadFile(fileName string) error {
 		return err
 	}
 	defer response.Body.Close()
-	fmt.Println("/api/files/download/" + fileName)
-	fmt.Println("status", response.StatusCode)
+
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("error status download files")
 	}
@@ -119,6 +117,7 @@ func (s *fileService) DownloadFile(fileName string) error {
 	return nil
 }
 
+// ListFile - Получение списка файлов с сервера
 func (s *fileService) ListFile() ([]model.FileAPI, error) {
 	token, err := s.TokenService.GetToken()
 	if err != nil {

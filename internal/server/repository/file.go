@@ -3,11 +3,12 @@ package repository
 import (
 	"context"
 	"fmt"
-	"gophkeeper/internal/model"
-	"gophkeeper/internal/server/db"
 	"io"
 	"os"
 	"path/filepath"
+
+	"gophkeeper/internal/model"
+	"gophkeeper/internal/server/db"
 )
 
 type FileRepository interface {
@@ -33,6 +34,7 @@ func NewFileRepository(db db.DB, uploadPath string) *fileRepository {
 	}
 }
 
+// AddFile - добавляет файл в БД
 func (f *fileRepository) AddFile(ctx context.Context, file model.FileAdd) error {
 	path := f.getFilePath(file.UserID, file.FileName)
 
@@ -78,6 +80,7 @@ func (f *fileRepository) AddFile(ctx context.Context, file model.FileAdd) error 
 	return nil
 }
 
+// GetList - возвращает список файлов пользователя
 func (f *fileRepository) GetList(ctx context.Context, userID int) ([]model.FileAPI, error) {
 	files := []model.FileAPI{}
 
@@ -98,6 +101,7 @@ func (f *fileRepository) GetList(ctx context.Context, userID int) ([]model.FileA
 	return files, nil
 }
 
+// GetFileForName - возвращает информацию по файлу пользователя на основе его имени
 func (f *fileRepository) GetFileForName(ctx context.Context, userID int, fileName string) (model.File, error) {
 	query := `SELECT id, user_id, name, size FROM files WHERE user_id = $1 AND name = $2 LIMIT 1`
 	rows, err := f.DB.Query(ctx, query, userID, fileName)
@@ -149,7 +153,7 @@ func (f *fileRepository) getFilePath(userID int, fileName string) string {
 }
 
 // fileExists - проверяет существование файла и что он не является каталогом
-func (f *fileRepository) fileExists(filePath string) (bool, error) {
+func (_ *fileRepository) fileExists(filePath string) (bool, error) {
 	info, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
 		return false, nil

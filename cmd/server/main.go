@@ -10,7 +10,6 @@ import (
 	"gophkeeper/internal/server/handler/route"
 	"gophkeeper/internal/server/repository"
 	"gophkeeper/internal/server/service"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -95,7 +94,7 @@ func main() {
 	defer cancel()
 
 	if err := server.Shutdown(ctxStopServer); err != nil {
-		log.Fatalf("Ошибка при завершении сервера: %v\n", err)
+		fmt.Printf("Ошибка при завершении сервера: %v\n", err)
 		return
 	}
 }
