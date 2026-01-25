@@ -74,6 +74,11 @@ func main() {
 	server := &http.Server{
 		Addr:    cfg.ServerAddress,
 		Handler: chiHandler.Router,
+
+		ReadHeaderTimeout: 15 * time.Second, // таймаут на чтение заголовков запроса
+		ReadTimeout:       0,                // таймаут на чтение всего запроса (заголовки + тело)
+		WriteTimeout:      60 * time.Minute, // таймаут на отправку ответа клиенту
+		IdleTimeout:       5 * time.Minute,  // таймаут для неактивных соединений
 	}
 
 	// канал для получения сигналов завершения
