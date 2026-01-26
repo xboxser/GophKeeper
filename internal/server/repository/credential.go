@@ -6,6 +6,7 @@ import (
 	"gophkeeper/internal/server/db"
 )
 
+//go:generate mockgen -source=credential.go -destination=../../../mocks/server/repository/credential_mock.go -package=repository
 type CredentialRepository interface {
 	AddCredential(ctx context.Context, credential model.CredentialAPI, userID int) error
 	DeleteCredential(ctx context.Context, login string, userID int) error
