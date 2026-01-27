@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
+//go:generate mockgen -source=encrypt.go -destination=../../../mocks/client/service/encrypt_mock.go -package=service
 type EncryptionService interface {
 	Encrypt(string) ([]byte, error)
 	Decrypt([]byte) (string, error)

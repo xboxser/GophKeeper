@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+//go:generate mockgen -source=token.go -destination=../../../mocks/client/repository/token_mock.go -package=repository
 type TokenRepository interface {
 	GetToken() (string, error)
 	SetToken(string) error
