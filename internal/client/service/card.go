@@ -11,8 +11,10 @@ import (
 )
 
 type CardService interface {
-	GetCards() ([]model.Card, error)
 	AddCard(model.Card) error
+	DeleteCard(string) error
+	GetCards() ([]model.Card, error)
+
 	SetMasterPass(string)
 }
 
@@ -32,6 +34,28 @@ func NewCardService(senderService SenderService, encryptionService EncryptionSer
 
 func (s *cardService) InitToken(tokenService TokenService) {
 	s.TokenService = tokenService
+}
+
+func (s *cardService) DeleteCard(last string) error {
+	token, err := s.TokenService.GetToken()
+	if err != nil {
+		return err
+	}
+	s.SenderService.SetToken(token)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, response, err := s.SenderService.SendDelete(ctx, "/api/card/"+last)
+
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("error delete card, %v", string(body))
+	}
+	return nil
 }
 
 func (s *cardService) GetCards() ([]model.Card, error) {

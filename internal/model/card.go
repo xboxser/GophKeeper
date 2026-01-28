@@ -4,6 +4,7 @@ import "errors"
 
 var (
 	ErrCardDuplicate = errors.New("error card duplicate record")
+	ErrCardNotFound  = errors.New("error not found card")
 )
 
 type CardAPI struct {

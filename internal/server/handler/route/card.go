@@ -33,6 +33,7 @@ func (ch *CardHandler) Routes() chi.Router {
 	r.Use(ch.TokenMiddleware.CheckToken)
 	r.Get("/", ch.getCards)
 	r.Post("/", ch.addCard)
+	r.Delete("/{last}", ch.deleteCard)
 	//TODO добавить update & delete
 	return r
 }
@@ -40,6 +41,34 @@ func (ch *CardHandler) Routes() chi.Router {
 // Pattern - поддерживает интерфейс RouteChi
 func (_ *CardHandler) Pattern() string {
 	return "/api/card"
+}
+
+func (ch *CardHandler) deleteCard(w http.ResponseWriter, r *http.Request) {
+	tokenAuth := ch.TokenMiddleware.GetUserRequest(r)
+	if tokenAuth.UserID == 0 {
+		http.Error(w, "Invalid user token", http.StatusUnauthorized)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	last := chi.URLParam(r, "last")
+	if last == "" {
+		http.Error(w, model.ErrCredentialEmptyLogin.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := ch.CardService.DeleteCard(ctx, last, tokenAuth.UserID)
+	if err != nil {
+		if errors.Is(err, model.ErrCardNotFound) {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (ch *CardHandler) getCards(w http.ResponseWriter, r *http.Request) {

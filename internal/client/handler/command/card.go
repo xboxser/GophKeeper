@@ -43,16 +43,57 @@ func (ch *CardHandler) GetCommands() []*cobra.Command {
 	getCardCmd := &cobra.Command{
 		Use:     "card-get",
 		Short:   "Получить список банковских карт",
-		Example: `  todo getCard --masterPass "password"`,
+		Example: `  todo card-get --masterPass "password"`,
 		Run:     ch.getCardRun,
 	}
 	getCardCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
 	getCardCmd.MarkFlagRequired("masterPass")
 
+	deleteCardCmd := &cobra.Command{
+		Use:     "card-delete",
+		Short:   "Удалить банковскую карту",
+		Example: `  todo card-delete --masterPass "password" `,
+		Run:     ch.deleteCardRun,
+	}
+	deleteCardCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	deleteCardCmd.MarkFlagRequired("masterPass")
+	deleteCardCmd.Flags().StringP("last4", "l", "", "Последние 4 цифры карты (Обязательный)")
+	deleteCardCmd.MarkFlagRequired("last4")
+
 	return []*cobra.Command{
 		addCardCmd,
 		getCardCmd,
+		deleteCardCmd,
 	}
+}
+
+func (ch *CardHandler) deleteCardRun(cmd *cobra.Command, _ []string) {
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+	ch.CardService.SetMasterPass(masterPass)
+	err = ch.UserMasterService.Master(masterPass)
+	if err != nil {
+		fmt.Println("❌ Ошибка проверки мастер пароля:", err)
+		return
+	}
+
+	last4, err := cmd.Flags().GetString("last4")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите последние 4 цифры карты (--last4 или -l)")
+		return
+	}
+
+	err = ch.CardService.DeleteCard(last4)
+
+	if err != nil {
+		fmt.Println("❌ Ошибка:", err)
+		return
+	}
+
+	fmt.Printf("✅ Карта успешно удалена\n")
 }
 
 func (ch *CardHandler) getCardRun(cmd *cobra.Command, _ []string) {
