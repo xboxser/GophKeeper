@@ -62,11 +62,12 @@ func (s *userService) Register(login, password, masterPass string) (string, erro
 		return "", err
 	}
 
-	_, response, err := s.SenderService.SendPost(ctx, "/api/user/register", json)
+	body, response, err := s.SenderService.SendPost(ctx, "/api/user/register", json)
 	if err != nil {
 		return "", err
 	}
-
+	//TODO добавить обработку статусов
+	fmt.Println(string(body))
 	token := response.Header.Get("Authorization")
 	if token == "" {
 		return "", errors.New("empty token service")

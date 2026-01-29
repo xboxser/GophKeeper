@@ -168,7 +168,7 @@ func (ch *CredentialHandler) updateCredential(w http.ResponseWriter, r *http.Req
 
 	err = ch.CredentialService.UpdateCredential(ctx, credential, tokenAuth.UserID)
 	if err != nil {
-		if errors.Is(err, model.ErrCardDuplicate) {
+		if errors.Is(err, model.ErrCredentialNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}

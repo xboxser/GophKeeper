@@ -16,11 +16,15 @@ type UserRepository interface {
 }
 
 type UserDB struct {
-	DB db.DB
+	DB                db.DB
+	CounterRepository CounterRepository
 }
 
-func NewUserDB(db db.DB) *UserDB {
-	return &UserDB{DB: db}
+func NewUserDB(db db.DB, c CounterRepository) *UserDB {
+	return &UserDB{
+		DB:                db,
+		CounterRepository: c,
+	}
 }
 
 // RegisterUser - регистрируем пользователя в системе
@@ -51,6 +55,17 @@ func (u *UserDB) RegisterUser(ctx context.Context, apiUser model.APIUser) (int, 
 	if userID == 0 {
 		return 0, model.ErrRegisterUser
 	}
+
+	// При регистрации пользователя, создаем счетчики
+	err = u.CounterRepository.IncrementCounter(ctx, model.CounterCard, userID)
+	if err != nil {
+		return 0, err
+	}
+	err = u.CounterRepository.IncrementCounter(ctx, model.CounterCredential, userID)
+	if err != nil {
+		return 0, err
+	}
+
 	return userID, nil
 }
 

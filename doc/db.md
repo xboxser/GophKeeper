@@ -13,7 +13,8 @@ erDiagram
 		string password  ""  
         string login  ""  
 		datetime created_at  ""  
-		datetime uploaded_at  ""  
+		datetime uploaded_at  ""
+        int inc_id    "id записи для пользователя"  
 	}
 	users {
 		int id PK ""  
@@ -23,15 +24,22 @@ erDiagram
 		datetime created_at  ""  
 		datetime uploaded_at  ""  
 	}
-    bank_cards {
-        int id PK ""  
+    users_counters {
+		int id PK ""  
         int user_id FK ""  
+        int count ""
+        string type  "тип счетчика" 
+	}
+    bank_cards {
+        id int  PK ""  
+        user_id int FK ""  
         title string  ""
-        number_enc BYTEA  "номер карты"  
-        expiry_enc BYTEA  "срок действия"
-        cvv_enc BYTEA  "cvv"
-        card_holder_name BYTEA  "имя держателя карты"
-        last4 string  "последние 4 цифры"
+        BYTEA number_enc   "номер карты"  
+        BYTEA expiry_enc  "срок действия"
+        BYTEA cvv_enc  "cvv"
+        BYTEA card_holder_name   "имя держателя карты"
+        string last4   "последние 4 цифры"
+        int inc_id    "id карты для пользователя"
     }
     files {
         int id PK ""
@@ -44,5 +52,6 @@ erDiagram
 	credentials}|--||users:"  "
     bank_cards}|--||users:"  "
     files}|--||users:"  "
+    users_counters}|--||users:"  "
 
 ```

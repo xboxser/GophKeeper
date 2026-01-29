@@ -35,8 +35,10 @@ func main() {
 	sessionRepository := repository.NewSessionMemory()
 	sessionService := service.NewSessionService(sessionRepository, cfg.TokenExpiresAt)
 
+	counterRepository := repository.NewUserCounterDB(db)
+
 	// Получаем все объекты для User - пользователи
-	userRepository := repository.NewUserDB(db)
+	userRepository := repository.NewUserDB(db, counterRepository)
 	userService := service.NewUserService(userRepository, jwtTokenService, sessionService)
 
 	// формируем middleware для обработки нужных запросов
@@ -48,7 +50,7 @@ func main() {
 	credentialService := service.NewCredentialService(credentialRepository)
 	credentialHandler := route.NewCredentialHandler(credentialService, tokenMiddleware)
 
-	cardRepository := repository.NewCardDB(db)
+	cardRepository := repository.NewCardDB(db, counterRepository)
 	cardService := service.NewCardService(cardRepository)
 	cardHandler := route.NewCardHandler(cardService, tokenMiddleware)
 

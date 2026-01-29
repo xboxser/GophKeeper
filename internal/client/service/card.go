@@ -15,6 +15,7 @@ type CardService interface {
 	DeleteCard(string) error
 	GetCards() ([]model.Card, error)
 
+	UpdateCard(model.Card) error
 	SetMasterPass(string)
 }
 
@@ -36,7 +37,7 @@ func (s *cardService) InitToken(tokenService TokenService) {
 	s.TokenService = tokenService
 }
 
-func (s *cardService) DeleteCard(last string) error {
+func (s *cardService) DeleteCard(id string) error {
 	token, err := s.TokenService.GetToken()
 	if err != nil {
 		return err
@@ -46,7 +47,7 @@ func (s *cardService) DeleteCard(last string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	body, response, err := s.SenderService.SendDelete(ctx, "/api/card/"+last)
+	body, response, err := s.SenderService.SendDelete(ctx, "/api/card/"+id)
 
 	if err != nil {
 		return err
@@ -127,6 +128,38 @@ func (s *cardService) AddCard(card model.Card) error {
 	return nil
 }
 
+func (s *cardService) UpdateCard(card model.Card) error {
+	token, err := s.TokenService.GetToken()
+	if err != nil {
+		return err
+	}
+	s.SenderService.SetToken(token)
+
+	cardAPI, err := s.ConvertToCardAPI(card)
+	if err != nil {
+		return err
+	}
+
+	json, err := json.Marshal(cardAPI)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, response, err := s.SenderService.SendPut(ctx, "/api/card", json)
+
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("error update card, %v", string(body))
+	}
+	return nil
+}
+
 func (s *cardService) SetMasterPass(masterPass string) {
 	s.EncryptionService.SetMasterPass(masterPass)
 }
@@ -138,6 +171,8 @@ func (s *cardService) ConvertToCardAPI(card model.Card) (model.CardAPI, error) {
 		Title: card.Title,
 	}
 	var err error
+
+	cardAPI.IncID = card.ID
 
 	cardAPI.Last4 = getLast4(card.Number)
 
@@ -191,6 +226,8 @@ func (s *cardService) ConvertToCard(cardAPI model.CardAPI) (model.Card, error) {
 	if err != nil {
 		return model.Card{}, err
 	}
+
+	card.ID = cardAPI.IncID
 
 	return card, nil
 

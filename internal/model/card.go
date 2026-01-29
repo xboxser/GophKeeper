@@ -5,6 +5,7 @@ import "errors"
 var (
 	ErrCardDuplicate = errors.New("error card duplicate record")
 	ErrCardNotFound  = errors.New("error not found card")
+	ErrCardEmptyID   = errors.New("error empty id params")
 )
 
 type CardAPI struct {
@@ -15,6 +16,7 @@ type CardAPI struct {
 	Expiry     []byte `json:"expiry" validate:"required,min=1"`
 	CVV        []byte `json:"cvv" validate:"required,min=1"`
 	CardHolder []byte `json:"card_holder" validate:"required,min=1"`
+	IncID      int    `json:"inc_id" validate:""`
 }
 
 type Card struct {

@@ -107,10 +107,26 @@ card-get -m=secret
 ### Получение удаление банковской карты
 Команда: `card-delete`
 ```
-card-delete -m=secret -l=1234
+card-delete -m=secret -i=1
 
-  -l, --last4 string        Последние 4 цифры карты (Обязательный)
   -m, --masterPass string   Пароль для шифрования (Обязательный)
+  -i, --id string           ID карты (Обязательный)
+```
+
+
+### Получение удаление банковской карты
+Команда: `card-update`
+```
+card-update --number "1234 1234 1234 8888" --expiry "12/23" --card_holder "Имя и фамилия" --cvv "123" -t=test-card -m=secret -i=5
+
+  -o, --card_holder string   Имя держателя карты (обязательное)
+  -c, --cvv string           cvv (обязательное)
+  -e, --expiry string        Срок действия карты (обязательное)
+  -h, --help                 help for card-update
+  -i, --id string            ID карты (обязательное)
+  -m, --masterPass string    Пароль для шифрования (Обязательный)
+  -n, --number string        Номер карты (обязательное)
+  -t, --title string         Произвольное название карты (обязательное)
 ```
 
 ## Файлы

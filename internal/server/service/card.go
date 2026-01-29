@@ -4,12 +4,14 @@ import (
 	"context"
 	"gophkeeper/internal/model"
 	"gophkeeper/internal/server/repository"
+	"strconv"
 )
 
 type CardService interface {
 	AddCard(ctx context.Context, card *model.CardAPI, userID int) error
-	DeleteCard(ctx context.Context, last4 string, userID int) error
+	DeleteCard(ctx context.Context, id string, userID int) error
 	GetCards(ctx context.Context, userID int) ([]model.CardAPI, error)
+	UpdateCard(ctx context.Context, card *model.CardAPI, userID int) error
 }
 
 type cardService struct {
@@ -23,28 +25,34 @@ func NewCardService(cardRepository repository.CardRepository) *cardService {
 }
 
 func (s *cardService) AddCard(ctx context.Context, card *model.CardAPI, userID int) error {
-	//TODO добавить проверку полей card, убрать лишние символы
-	cardDB, err := s.CardRepository.GetCard(ctx, card.Last4, userID)
-	if err != nil {
-		return err
-	}
-	if cardDB.ID != 0 {
-		return model.ErrCardDuplicate
-	}
 	return s.CardRepository.AddCard(ctx, *card, userID)
 }
 
-func (s *cardService) DeleteCard(ctx context.Context, last4 string, userID int) error {
-	cardDB, err := s.CardRepository.GetCard(ctx, last4, userID)
+func (s *cardService) DeleteCard(ctx context.Context, id string, userID int) error {
+	cardDB, err := s.CardRepository.GetCard(ctx, id, userID)
 	if err != nil {
 		return err
 	}
 	if cardDB.ID == 0 {
 		return model.ErrCardNotFound
 	}
-	return s.CardRepository.DeleteCard(ctx, last4, userID)
+	return s.CardRepository.DeleteCard(ctx, id, userID)
 }
 
 func (s *cardService) GetCards(ctx context.Context, userID int) ([]model.CardAPI, error) {
 	return s.CardRepository.GetCards(ctx, userID)
+}
+
+func (s *cardService) UpdateCard(ctx context.Context, card *model.CardAPI, userID int) error {
+	id := strconv.Itoa(card.IncID)
+	cardDB, err := s.CardRepository.GetCard(ctx, id, userID)
+	if err != nil {
+		return err
+	}
+
+	if cardDB.ID == 0 {
+		return model.ErrCardNotFound
+	}
+	//TODO добавить частичное обновление информации
+	return s.CardRepository.UpdateCard(ctx, *card, userID)
 }
