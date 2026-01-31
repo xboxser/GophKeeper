@@ -64,20 +64,21 @@ credential-get -m=secret
 ### Удаление элемента из учетных данных
 Команда: `credential-del`
 ```
-credential-get -m=secret -l=login-test
+credential-del -m=secret -i=9
 
-  -m, --masterPass string   Пароль для шифрования (Обязательный)
-  -l, --login string        Логин (обязательный)
+  -h, --help                help for credential-del
+  -i, --id string           Номер  записи (обязательный)
 ```
 
 ### Обновление элемента из учетных данных
 Команда: `credential-update`
 ```
-credential-update -m=secret -l=login-test2 -p=qwerty123
+credential-update -m=secret -l=login-test2 -p=qwerty123 -i=5
 
   -l, --login string        Логин (обязательный)
   -m, --masterPass string   Пароль для шифрования (Обязательный)
   -p, --password string     Пароль (обязательный)
+  -i, --id string           Номер  записи (обязательный)
 ```
 
 

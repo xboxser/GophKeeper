@@ -50,32 +50,32 @@ func (mr *MockCredentialRepositoryMockRecorder) AddCredential(ctx, credential, u
 }
 
 // DeleteCredential mocks base method.
-func (m *MockCredentialRepository) DeleteCredential(ctx context.Context, login string, userID int) error {
+func (m *MockCredentialRepository) DeleteCredential(ctx context.Context, IncID, userID int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCredential", ctx, login, userID)
+	ret := m.ctrl.Call(m, "DeleteCredential", ctx, IncID, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteCredential indicates an expected call of DeleteCredential.
-func (mr *MockCredentialRepositoryMockRecorder) DeleteCredential(ctx, login, userID interface{}) *gomock.Call {
+func (mr *MockCredentialRepositoryMockRecorder) DeleteCredential(ctx, IncID, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCredential", reflect.TypeOf((*MockCredentialRepository)(nil).DeleteCredential), ctx, login, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCredential", reflect.TypeOf((*MockCredentialRepository)(nil).DeleteCredential), ctx, IncID, userID)
 }
 
 // GetCredential mocks base method.
-func (m *MockCredentialRepository) GetCredential(ctx context.Context, login string, userID int) (model.CredentialAPI, error) {
+func (m *MockCredentialRepository) GetCredential(ctx context.Context, IncID, userID int) (model.CredentialAPI, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCredential", ctx, login, userID)
+	ret := m.ctrl.Call(m, "GetCredential", ctx, IncID, userID)
 	ret0, _ := ret[0].(model.CredentialAPI)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetCredential indicates an expected call of GetCredential.
-func (mr *MockCredentialRepositoryMockRecorder) GetCredential(ctx, login, userID interface{}) *gomock.Call {
+func (mr *MockCredentialRepositoryMockRecorder) GetCredential(ctx, IncID, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCredential", reflect.TypeOf((*MockCredentialRepository)(nil).GetCredential), ctx, login, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCredential", reflect.TypeOf((*MockCredentialRepository)(nil).GetCredential), ctx, IncID, userID)
 }
 
 // GetCredentials mocks base method.

@@ -51,8 +51,8 @@ func (ch *CredentialHandler) GetCommands() []*cobra.Command {
 	}
 	deleteCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
 	deleteCredentialCmd.MarkFlagRequired("masterPass")
-	deleteCredentialCmd.Flags().StringP("login", "l", "", "Логин (обязательный)")
-	deleteCredentialCmd.MarkFlagRequired("login")
+	deleteCredentialCmd.Flags().StringP("id", "i", "", "Номер  записи (обязательный)")
+	deleteCredentialCmd.MarkFlagRequired("id")
 
 	updateCredentialCmd := &cobra.Command{
 		Use:     "credential-update",
@@ -66,6 +66,8 @@ func (ch *CredentialHandler) GetCommands() []*cobra.Command {
 	updateCredentialCmd.MarkFlagRequired("password")
 	updateCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
 	updateCredentialCmd.MarkFlagRequired("masterPass")
+	updateCredentialCmd.Flags().StringP("id", "i", "", "Номер  записи (обязательный)")
+	updateCredentialCmd.MarkFlagRequired("id")
 
 	return []*cobra.Command{
 		addCredentialCmd,
@@ -121,13 +123,13 @@ func (ch *CredentialHandler) deleteCredentialRun(cmd *cobra.Command, _ []string)
 		return
 	}
 
-	login, err := cmd.Flags().GetString("login")
-	if err != nil || login == "" {
-		fmt.Println("❌ Ошибка: укажите логин (--login или -l)")
+	id, err := cmd.Flags().GetString("id")
+	if err != nil || id == "" {
+		fmt.Println("❌ Ошибка: номер записи (--id или -i)")
 		return
 	}
 
-	err = ch.CredentialService.DeleteCredential(login)
+	err = ch.CredentialService.DeleteCredential(id)
 
 	if err != nil {
 		fmt.Println("❌ Ошибка:", err)
@@ -158,8 +160,8 @@ func (ch *CredentialHandler) getCredentialRun(cmd *cobra.Command, _ []string) {
 
 	fmt.Printf("🔐 Найдено %d учетных записей:\n\n", len(credentials))
 
-	for i, cred := range credentials {
-		fmt.Printf("📋 Запись #%d\n", i+1)
+	for _, cred := range credentials {
+		fmt.Printf("📋 Запись #%d\n", cred.ID)
 		fmt.Printf("   Логин: %s\n", cred.Login)
 		fmt.Printf("   Пароль: %s\n", string(cred.Password))
 		fmt.Println()
@@ -182,6 +184,11 @@ func (ch *CredentialHandler) updateCredentialRun(cmd *cobra.Command, _ []string)
 		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
 		return
 	}
+	id, err := cmd.Flags().GetString("id")
+	if err != nil || id == "" {
+		fmt.Println("❌ Ошибка: номер записи (--id или -i)")
+		return
+	}
 
 	err = ch.UserMasterService.Master(masterPass)
 	if err != nil {
@@ -189,7 +196,7 @@ func (ch *CredentialHandler) updateCredentialRun(cmd *cobra.Command, _ []string)
 		return
 	}
 
-	err = ch.CredentialService.UpdateCredential(login, password, masterPass)
+	err = ch.CredentialService.UpdateCredential(login, password, masterPass, id)
 
 	if err != nil {
 		fmt.Println("❌ Ошибка:", err)

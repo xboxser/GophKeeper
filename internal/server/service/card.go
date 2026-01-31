@@ -53,6 +53,5 @@ func (s *cardService) UpdateCard(ctx context.Context, card *model.CardAPI, userI
 	if cardDB.ID == 0 {
 		return model.ErrCardNotFound
 	}
-	//TODO добавить частичное обновление информации
 	return s.CardRepository.UpdateCard(ctx, *card, userID)
 }

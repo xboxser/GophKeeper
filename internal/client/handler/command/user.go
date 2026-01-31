@@ -53,8 +53,6 @@ func (u *UserHandler) GetCommands() []*cobra.Command {
 	masterCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
 	masterCmd.MarkFlagRequired("masterPass")
 
-	// TODO добавить выход из учетной системы
-
 	return []*cobra.Command{
 		RegisterCmd,
 		LoginCmd,

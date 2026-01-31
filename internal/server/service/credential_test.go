@@ -40,12 +40,10 @@ func TestAddCredential(t *testing.T) {
 	defer ctrl.Finish()
 
 	testCases := []struct {
-		name             string
-		credential       model.CredentialAPI
-		userID           int
-		expectError      error
-		credentialGetErr error
-		credentialGet    model.CredentialAPI
+		name        string
+		credential  model.CredentialAPI
+		userID      int
+		expectError error
 	}{
 		{
 			name:        "valid 1",
@@ -60,14 +58,6 @@ func TestAddCredential(t *testing.T) {
 			expectError: nil,
 		},
 		{
-			name:             "error duplicate credential",
-			credential:       model.CredentialAPI{Login: "login3", Password: []byte("password2")},
-			userID:           123,
-			expectError:      model.ErrCredentialDuplicate,
-			credentialGetErr: nil,
-			credentialGet:    model.CredentialAPI{Login: "login3", Password: []byte("password2")},
-		},
-		{
 			name:        "error user",
 			credential:  model.CredentialAPI{Login: "login4", Password: []byte("password2")},
 			userID:      -123,
@@ -79,12 +69,7 @@ func TestAddCredential(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			mockRepo := mock_rep.NewMockCredentialRepository(ctrl)
 
-			if tc.credentialGet.Login != "" {
-				mockRepo.EXPECT().GetCredential(gomock.Any(), tc.credential.Login, tc.userID).Return(tc.credentialGet, nil)
-			} else {
-				mockRepo.EXPECT().GetCredential(gomock.Any(), tc.credential.Login, tc.userID).Return(model.CredentialAPI{}, tc.credentialGetErr)
-				mockRepo.EXPECT().AddCredential(gomock.Any(), tc.credential, tc.userID).Return(tc.expectError)
-			}
+			mockRepo.EXPECT().AddCredential(gomock.Any(), tc.credential, tc.userID).Return(tc.expectError)
 
 			credentialService := NewCredentialService(mockRepo)
 
@@ -104,7 +89,7 @@ func TestDeleteCredential(t *testing.T) {
 	defer ctrl.Finish()
 	testCases := []struct {
 		name             string
-		login            string
+		incID            int
 		userID           int
 		expectError      error
 		credentialGetErr error
@@ -112,28 +97,28 @@ func TestDeleteCredential(t *testing.T) {
 	}{
 		{
 			name:          "valid 1",
-			login:         "login",
+			incID:         1,
 			userID:        1,
 			expectError:   nil,
 			credentialGet: model.CredentialAPI{Login: "login", Password: []byte("password2")},
 		},
 		{
 			name:          "valid 2",
-			login:         "login",
+			incID:         2,
 			userID:        2,
 			expectError:   nil,
 			credentialGet: model.CredentialAPI{Login: "login", Password: []byte("password2")},
 		},
 		{
 			name:             "error not found credential",
-			login:            "login3",
+			incID:            3,
 			userID:           123,
 			expectError:      model.ErrCredentialNotFound,
 			credentialGetErr: nil,
 		},
 		{
 			name:          "error user",
-			login:         "login4",
+			incID:         4,
 			userID:        -123,
 			expectError:   errors.New("not userID"),
 			credentialGet: model.CredentialAPI{Login: "login", Password: []byte("password2")},
@@ -146,7 +131,7 @@ func TestDeleteCredential(t *testing.T) {
 
 			if tc.credentialGet.Login != "" {
 				mockRepo.EXPECT().GetCredential(gomock.Any(), gomock.Any(), tc.userID).Return(tc.credentialGet, nil)
-				mockRepo.EXPECT().DeleteCredential(gomock.Any(), tc.login, tc.userID).Return(tc.expectError)
+				mockRepo.EXPECT().DeleteCredential(gomock.Any(), tc.incID, tc.userID).Return(tc.expectError)
 			} else {
 				mockRepo.EXPECT().GetCredential(gomock.Any(), gomock.Any(), tc.userID).Return(model.CredentialAPI{}, tc.credentialGetErr)
 
@@ -154,7 +139,7 @@ func TestDeleteCredential(t *testing.T) {
 
 			credentialService := NewCredentialService(mockRepo)
 
-			err := credentialService.DeleteCredential(context.Background(), tc.login, tc.userID)
+			err := credentialService.DeleteCredential(context.Background(), tc.incID, tc.userID)
 			if tc.expectError != nil {
 				assert.ErrorIs(t, err, tc.expectError)
 			} else {

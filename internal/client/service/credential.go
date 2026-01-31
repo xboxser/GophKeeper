@@ -6,15 +6,16 @@ import (
 	"fmt"
 	"gophkeeper/internal/model"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 type CredentialService interface {
 	AddCredential(login, password, masterPass string) error
-	DeleteCredential(login string) error
+	DeleteCredential(id string) error
 	GetCredentials(string) ([]model.Credential, error)
 
-	UpdateCredential(login, password, masterPass string) error
+	UpdateCredential(login, password, masterPass, id string) error
 	InitToken(TokenService)
 }
 
@@ -38,7 +39,7 @@ func (s *credentialService) InitToken(tokenService TokenService) {
 	s.TokenService = tokenService
 }
 
-func (s *credentialService) DeleteCredential(login string) error {
+func (s *credentialService) DeleteCredential(id string) error {
 	token, err := s.TokenService.GetToken()
 	if err != nil {
 		return err
@@ -48,7 +49,7 @@ func (s *credentialService) DeleteCredential(login string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	body, response, err := s.SenderService.SendDelete(ctx, "/api/credentials/"+login)
+	body, response, err := s.SenderService.SendDelete(ctx, "/api/credentials/"+id)
 
 	if err != nil {
 		return err
@@ -90,13 +91,14 @@ func (s *credentialService) GetCredentials(masterPass string) ([]model.Credentia
 	var credentials []model.Credential
 	s.EncryptionService.SetMasterPass(masterPass)
 	for _, credentialAPI := range credentialsAPI {
-		credential, err := s.EncryptionService.Decrypt(credentialAPI.Password)
+		password, err := s.EncryptionService.Decrypt(credentialAPI.Password)
 		if err != nil {
 			return nil, err
 		}
 		credentials = append(credentials, model.Credential{
+			ID:       credentialAPI.IncID,
 			Login:    credentialAPI.Login,
-			Password: credential,
+			Password: password,
 		})
 	}
 
@@ -136,7 +138,7 @@ func (s *credentialService) AddCredential(login, password, masterPass string) er
 	return nil
 }
 
-func (s *credentialService) UpdateCredential(login, password, masterPass string) error {
+func (s *credentialService) UpdateCredential(login, password, masterPass, id string) error {
 	token, err := s.TokenService.GetToken()
 	if err != nil {
 		return err
@@ -149,7 +151,12 @@ func (s *credentialService) UpdateCredential(login, password, masterPass string)
 		return err
 	}
 
-	json, err := json.Marshal(model.CredentialAPI{Login: login, Password: passHash})
+	incID, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+
+	json, err := json.Marshal(model.CredentialAPI{Login: login, Password: passHash, IncID: incID})
 	if err != nil {
 		return err
 	}
@@ -162,9 +169,10 @@ func (s *credentialService) UpdateCredential(login, password, masterPass string)
 	if err != nil {
 		return err
 	}
+	fmt.Println("status code", response.StatusCode)
 
 	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("error add credentials, %v", string(body))
+		return fmt.Errorf("error update credentials, %v", string(body))
 	}
 	return nil
 }

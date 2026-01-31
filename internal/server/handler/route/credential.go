@@ -10,6 +10,7 @@ import (
 	"gophkeeper/internal/server/service"
 	"gophkeeper/internal/validator"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -33,7 +34,7 @@ func (ch *CredentialHandler) Routes() chi.Router {
 	r.Use(ch.TokenMiddleware.CheckToken)
 	r.Get("/", ch.getCredentials)
 	r.Post("/", ch.addCredential)
-	r.Delete("/{login}", ch.deleteCredential)
+	r.Delete("/{id}", ch.deleteCredential)
 	r.Put("/", ch.updateCredential)
 	return r
 }
@@ -53,13 +54,19 @@ func (ch *CredentialHandler) deleteCredential(w http.ResponseWriter, r *http.Req
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	login := chi.URLParam(r, "login")
-	if login == "" {
-		http.Error(w, model.ErrCredentialEmptyLogin.Error(), http.StatusBadRequest)
+	ID := chi.URLParam(r, "id")
+	if ID == "" {
+		http.Error(w, model.ErrCredentialEmptyID.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err := ch.CredentialService.DeleteCredential(ctx, login, tokenAuth.UserID)
+	IncID, err := strconv.Atoi(ID)
+	if err != nil {
+		http.Error(w, model.ErrCredentialEmptyID.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = ch.CredentialService.DeleteCredential(ctx, IncID, tokenAuth.UserID)
 	if err != nil {
 		if errors.Is(err, model.ErrCredentialNotFound) {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -160,6 +167,11 @@ func (ch *CredentialHandler) updateCredential(w http.ResponseWriter, r *http.Req
 
 	if err := validator.ValidateModelCredentialAPI(credential); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if credential.IncID == 0 {
+		http.Error(w, model.ErrCredentialEmptyID.Error(), http.StatusBadRequest)
 		return
 	}
 

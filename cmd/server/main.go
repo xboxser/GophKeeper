@@ -46,7 +46,7 @@ func main() {
 	userHandler := route.NewUserHandler(userService, tokenMiddleware)
 
 	// Получаем все объекты для Credential - учетные данные пользователя
-	credentialRepository := repository.NewCredentialDB(db)
+	credentialRepository := repository.NewCredentialDB(db, counterRepository)
 	credentialService := service.NewCredentialService(credentialRepository)
 	credentialHandler := route.NewCredentialHandler(credentialService, tokenMiddleware)
 

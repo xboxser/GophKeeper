@@ -2,7 +2,6 @@ package handler
 
 import (
 	"gophkeeper/internal/client/handler/command"
-	"gophkeeper/internal/client/service"
 
 	"github.com/spf13/cobra"
 )
@@ -11,7 +10,7 @@ type Cli struct {
 	ClientCmd *cobra.Command
 }
 
-func NewCli(credentialService service.CredentialService) *Cli {
+func NewCli() *Cli {
 
 	clientCmd := &cobra.Command{
 		Use:   "todo",

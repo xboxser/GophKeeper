@@ -24,15 +24,15 @@ erDiagram
 		datetime created_at  ""  
 		datetime uploaded_at  ""  
 	}
-    users_counters {
+    counters {
 		int id PK ""  
         int user_id FK ""  
         int count ""
         string type  "тип счетчика" 
 	}
     bank_cards {
-        id int  PK ""  
-        user_id int FK ""  
+        int id PK ""  
+        int user_id FK ""  
         title string  ""
         BYTEA number_enc   "номер карты"  
         BYTEA expiry_enc  "срок действия"
