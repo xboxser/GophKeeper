@@ -66,8 +66,11 @@ func (s *userService) Register(login, password, masterPass string) (string, erro
 	if err != nil {
 		return "", err
 	}
-	//TODO добавить обработку статусов
-	fmt.Println(string(body))
+
+	if response.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("error register user, %v", string(body))
+	}
+
 	token := response.Header.Get("Authorization")
 	if token == "" {
 		return "", errors.New("empty token service")

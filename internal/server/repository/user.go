@@ -35,6 +35,9 @@ func (u *UserDB) RegisterUser(ctx context.Context, apiUser model.APIUser) (int, 
 	}
 
 	tx, err := u.DB.Begin(ctx)
+	if err != nil {
+		return 0, err
+	}
 	defer tx.Rollback(ctx)
 
 	// Регистрируем пользователя и пытаемся получить его ID
@@ -45,10 +48,10 @@ func (u *UserDB) RegisterUser(ctx context.Context, apiUser model.APIUser) (int, 
 	if err != nil {
 		return 0, err
 	}
-	defer rows.Close()
 
 	if rows.Next() {
 		err = rows.Scan(&userID)
+		rows.Close()
 		if err != nil {
 			return 0, err
 		}
@@ -69,6 +72,7 @@ func (u *UserDB) RegisterUser(ctx context.Context, apiUser model.APIUser) (int, 
 		return 0, err
 	}
 
+	tx.Commit(ctx)
 	return userID, nil
 }
 
