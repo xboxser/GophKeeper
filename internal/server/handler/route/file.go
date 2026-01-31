@@ -60,7 +60,6 @@ func (f *FileHandler) addFile(w http.ResponseWriter, r *http.Request) {
 		Body:     r.Body,
 	}
 
-	//TODO подумать над контекстом
 	err := f.FileService.AddFile(r.Context(), file)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -46,7 +46,6 @@ func (_ *CardHandler) Pattern() string {
 func (ch *CardHandler) deleteCard(w http.ResponseWriter, r *http.Request) {
 	tokenAuth := ch.TokenMiddleware.GetUserRequest(r)
 	if tokenAuth.UserID == 0 {
-		// TODO вынести проверку в отдельный метод и заменить в других файлах
 		http.Error(w, "Invalid user token", http.StatusUnauthorized)
 		return
 	}

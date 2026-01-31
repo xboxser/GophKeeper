@@ -13,7 +13,6 @@ import (
 
 //go:generate mockgen -source=sender.go -destination=../../../mocks/client/service/sender_mock.go -package=service
 type SenderService interface {
-	//TODO причесать весь этот звернец методов, кучу дублирующего кода
 	SendDelete(context.Context, string) ([]byte, *http.Response, error)
 	SendPost(context.Context, string, []byte) ([]byte, *http.Response, error)
 	SendPut(context.Context, string, []byte) ([]byte, *http.Response, error)
@@ -184,7 +183,6 @@ func (s *senderService) SendFile(ctx context.Context, url string, b io.Reader, f
 }
 
 func (s *senderService) SendGetFile(ctx context.Context, url string) (*http.Response, error) {
-	// TODO добавить скачивание Range
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, s.serverAddress+url, nil)
 	if err != nil {
 		return nil, err

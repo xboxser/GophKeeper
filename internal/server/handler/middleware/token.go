@@ -65,7 +65,6 @@ func (t *tokenMiddleware) CheckToken(next http.Handler) http.Handler {
 
 		// Добавляем userID в контекст запроса
 		// На основе данного поля определяем пользователя в дальнейшем
-		// TODO переделать на model.User для избавления от лишних запросов к БД
 		ctx = context.WithValue(r.Context(), UserIDContextKey, tokenAuth)
 		// Передаем запрос с обновленным контекстом дальше
 		next.ServeHTTP(w, r.WithContext(ctx))

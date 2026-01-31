@@ -27,6 +27,7 @@ type fileService struct {
 	SenderService     SenderService
 	TokenService      TokenService
 	FileRepository    repository.FileRepository
+	LimitConTimeFile  int
 }
 
 func NewFileService(f repository.FileRepository, s SenderService, e EncryptionService) *fileService {
@@ -34,11 +35,17 @@ func NewFileService(f repository.FileRepository, s SenderService, e EncryptionSe
 		EncryptionService: e,
 		SenderService:     s,
 		FileRepository:    f,
+		LimitConTimeFile:  1000,
 	}
 }
 
 func (s *fileService) InitToken(tokenService TokenService) {
 	s.TokenService = tokenService
+}
+
+// SetLimitConTimeFile - устанавливаем максимальное время загрузки/скачивания файла
+func (s *fileService) SetLimitConTimeFile(limit int) {
+	s.LimitConTimeFile = limit
 }
 
 // AddFile - загрузка файла на сервер
@@ -70,8 +77,7 @@ func (s *fileService) AddFile(filePath, masterPass string) error {
 	// Обёртка с прогрессом
 	reader := bar.NewProxyReader(file)
 
-	// TODO продумать контекст
-	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(s.LimitConTimeFile)*time.Second)
 	defer cancel()
 
 	body, response, err := s.SenderService.SendFile(ctx, "/api/files/add", reader, fileName)
@@ -97,8 +103,7 @@ func (s *fileService) DownloadFile(fileName string) error {
 	}
 	s.SenderService.SetToken(token)
 
-	// TODO продумать контекст
-	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(s.LimitConTimeFile)*time.Second)
 	defer cancel()
 
 	response, err := s.SenderService.SendGetFile(ctx, "/api/files/download/"+fileName)

@@ -33,7 +33,6 @@ func NewCredentialService(senderService SenderService, encryptionService Encrypt
 	}
 }
 
-// TODO подумать как избавиться от множественного реализации данной функции
 // InitToken - добавляем сервис токена для работы с ним
 func (s *credentialService) InitToken(tokenService TokenService) {
 	s.TokenService = tokenService
