@@ -45,6 +45,7 @@ erDiagram
         int id PK ""
         int user_id FK ""
         string name "имя файла"
+        string status "статус файла"
         int size "размер файла"
         datetime created_at  ""  
 		datetime uploaded_at  ""  

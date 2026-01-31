@@ -30,7 +30,7 @@ func (f *FileHandler) Routes() chi.Router {
 	r.Post("/add", f.addFile)
 	r.Get("/list", f.listFile)
 	r.Get("/download/{filename}", f.downloadFile)
-	//TODO добавить delete
+	r.Delete("/{filename}", f.deleteFile)
 	return r
 }
 
@@ -89,6 +89,44 @@ func (f *FileHandler) listFile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(files)
+}
+
+func (f *FileHandler) deleteFile(w http.ResponseWriter, r *http.Request) {
+	tokenAuth := f.TokenMiddleware.GetUserRequest(r)
+	if tokenAuth.UserID == 0 {
+		http.Error(w, "Invalid user token", http.StatusUnauthorized)
+		return
+	}
+
+	filename := chi.URLParam(r, "filename")
+	if filename == "" {
+		http.Error(w, model.ErrFileEmptyFileName.Error(), http.StatusBadRequest)
+		return
+	}
+
+	file, err := f.FileService.GetFileForName(r.Context(), tokenAuth.UserID, filename)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if file.ID == 0 {
+		http.Error(w, model.ErrFileNotFound.Error(), http.StatusNotFound)
+		return
+	}
+
+	if file.Status != model.StatusFileOk {
+		http.Error(w, model.ErrFileIsBlock.Error(), http.StatusLocked)
+		return
+	}
+
+	err = f.FileService.DeleteFile(r.Context(), file)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // downloadFile - обработчик запроса на скачивание файла

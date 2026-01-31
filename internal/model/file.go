@@ -8,6 +8,26 @@ import (
 var (
 	ErrFileEmptyFileName = errors.New("error empty file name")
 	ErrFileNotFound      = errors.New("file not found")
+	// ErrFileSave - ошибка сохранения файла
+	ErrFileSave = errors.New("error save file")
+	// ErrFileIsBlock - файл заблокирован
+	ErrFileIsBlock = errors.New("file is block")
+)
+
+// StatusFile - статус файла
+type StatusFile string
+
+const (
+	// StatusFileAdd - Файл загружается на сервер
+	StatusFileAdd StatusFile = "add"
+	// StatusFileUpdate - обновляем файл
+	StatusFileUpdate StatusFile = "upd."
+
+	// StatusFileDown - файл скачивается пользователем
+	StatusFileDown StatusFile = "down"
+
+	// StatusFileOl - файл загружен и хранится на сервере
+	StatusFileOk StatusFile = "ok"
 )
 
 type FileAdd struct {
@@ -19,8 +39,9 @@ type FileAdd struct {
 
 // FileAPI - объект для передачи информации об файле по АПИ
 type FileAPI struct {
-	Name string `json:"file_name"`
-	Size int64  `json:"file_size"`
+	Name   string `json:"file_name"`
+	Size   int64  `json:"file_size"`
+	Status string `json:"file_status"`
 }
 
 // File - объект с информацией о файле на сервере
@@ -28,6 +49,7 @@ type File struct {
 	ID       int
 	UserID   int
 	Name     string
+	Status   StatusFile
 	FilePath string
 	Size     int64
 }

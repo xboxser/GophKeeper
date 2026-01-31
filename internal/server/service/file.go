@@ -10,7 +10,7 @@ import (
 type FileService interface {
 	AddFile(ctx context.Context, file model.FileAdd) error
 	DownloadFile(file model.File) (*os.File, os.FileInfo, error)
-
+	DeleteFile(ctx context.Context, file model.File) error
 	GetFileForName(ctx context.Context, userID int, fileName string) (model.File, error)
 	ListFile(ctx context.Context, userID int) ([]model.FileAPI, error)
 }
@@ -51,4 +51,9 @@ func (fs *fileService) DownloadFile(file model.File) (*os.File, os.FileInfo, err
 	}
 
 	return f, stat, nil
+}
+
+func (fs *fileService) DeleteFile(ctx context.Context, file model.File) error {
+
+	return fs.FileRepository.DeleteFile(ctx, file.UserID, file.Name)
 }

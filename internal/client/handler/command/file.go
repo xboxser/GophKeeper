@@ -38,29 +38,44 @@ func (s *FileHandler) GetCommands() []*cobra.Command {
 	listFileCmd := &cobra.Command{
 		Use:     "file-list",
 		Short:   "Получить список файлов",
-		Example: `  todo file-list`,
+		Example: `  todo file-list -m=secret`,
 		Run:     s.listFileRun,
 	}
+	listFileCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	listFileCmd.MarkFlagRequired("masterPass")
 
 	downloadFileCmd := &cobra.Command{
 		Use:     "file-get",
 		Short:   "Скачать файл с сервера",
-		Example: `  todo file-get -f=name.txt`,
+		Example: `  todo file-get -f=name.txt -m=secret`,
 		Run:     s.downloadFileRun,
 	}
-
+	downloadFileCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	downloadFileCmd.MarkFlagRequired("masterPass")
 	downloadFileCmd.Flags().StringP("file", "f", "", "наименование файла для скачивания с сервера (Обязательный)")
 	downloadFileCmd.MarkFlagRequired("file")
+
+	deleteFileCmd := &cobra.Command{
+		Use:     "file-delete",
+		Short:   "Удалить файл с сервера",
+		Example: `  todo file-delete -m=secret -f=name.txt `,
+		Run:     s.deleteFileRun,
+	}
+
+	deleteFileCmd.Flags().StringP("file", "f", "", "наименование файла для скачивания с сервера (Обязательный)")
+	deleteFileCmd.MarkFlagRequired("file")
+	deleteFileCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	deleteFileCmd.MarkFlagRequired("masterPass")
 
 	return []*cobra.Command{
 		addFileCmd,
 		listFileCmd,
 		downloadFileCmd,
+		deleteFileCmd,
 	}
 }
 
 func (s *FileHandler) addFileRun(cmd *cobra.Command, _ []string) {
-
 	masterPass, err := cmd.Flags().GetString("masterPass")
 	if err != nil || masterPass == "" {
 		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
@@ -88,7 +103,17 @@ func (s *FileHandler) addFileRun(cmd *cobra.Command, _ []string) {
 
 }
 
-func (s *FileHandler) listFileRun(_ *cobra.Command, _ []string) {
+func (s *FileHandler) listFileRun(cmd *cobra.Command, _ []string) {
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+	err = s.UserMasterService.Master(masterPass)
+	if err != nil {
+		fmt.Println("❌ Ошибка проверки мастер пароля:", err)
+		return
+	}
 
 	files, err := s.FileService.ListFile()
 
@@ -105,10 +130,10 @@ func (s *FileHandler) listFileRun(_ *cobra.Command, _ []string) {
 	fmt.Println("📁 Список файлов:")
 
 	t := table.NewWriter()
-	t.AppendHeader(table.Row{"#", "Имя файла", "Размер"})
+	t.AppendHeader(table.Row{"#", "Имя файла", "Размер", "Статус"})
 
 	for i, file := range files {
-		t.AppendRow(table.Row{i + 1, file.Name, commonService.FormatFileSize(file.Size)})
+		t.AppendRow(table.Row{i + 1, file.Name, commonService.FormatFileSize(file.Size), file.Status})
 	}
 
 	t.SetStyle(table.StyleLight)
@@ -116,6 +141,17 @@ func (s *FileHandler) listFileRun(_ *cobra.Command, _ []string) {
 }
 
 func (s *FileHandler) downloadFileRun(cmd *cobra.Command, _ []string) {
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+	err = s.UserMasterService.Master(masterPass)
+	if err != nil {
+		fmt.Println("❌ Ошибка проверки мастер пароля:", err)
+		return
+	}
+
 	filePath, err := cmd.Flags().GetString("file")
 	if err != nil || filePath == "" {
 		fmt.Println("❌ Ошибка: укажите наименование файла для скачивания (--file или -f)")
@@ -130,4 +166,32 @@ func (s *FileHandler) downloadFileRun(cmd *cobra.Command, _ []string) {
 	}
 
 	fmt.Println("✅ Файл", filePath, "скачан")
+}
+
+func (s *FileHandler) deleteFileRun(cmd *cobra.Command, _ []string) {
+	fileName, err := cmd.Flags().GetString("file")
+	if err != nil || fileName == "" {
+		fmt.Println("❌ Ошибка: укажите полное наименование файла (--file или -f)")
+		return
+	}
+
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+	err = s.UserMasterService.Master(masterPass)
+	if err != nil {
+		fmt.Println("❌ Ошибка проверки мастер пароля:", err)
+		return
+	}
+
+	err = s.FileService.DeleteFile(fileName)
+
+	if err != nil {
+		fmt.Println("❌ Ошибка:", err)
+		return
+	}
+
+	fmt.Printf("✅ Запись успешно удалена\n")
 }

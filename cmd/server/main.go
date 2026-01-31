@@ -55,6 +55,10 @@ func main() {
 	cardHandler := route.NewCardHandler(cardService, tokenMiddleware)
 
 	fileRepository := repository.NewFileRepository(db, cfg.UploadPath)
+	err = fileRepository.DeleteAllBlocks(context.Background())
+	if err != nil {
+		panic(err)
+	}
 	fileService := service.NewFileService(fileRepository)
 	fileHandler := route.NewFileHandler(fileService, tokenMiddleware)
 

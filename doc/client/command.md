@@ -147,16 +147,27 @@ file-add -m=secret -f=../../test_file/1GB_file
 Команда: `file-list`
 
 ```
-file-add 
+file-list  -m=secret 
 
-Без параметров
+  -m, --masterPass string   Пароль для шифрования (Обязательный)
 ```
 
 ### Скачивание файла
 Команда: `file-get`
 
 ```
-file-get -f=1GB_file
+file-get -m=secret -f=1GB_file
 
--f, --file string   наименование файла для скачивания с сервера (Обязательный)
+  -f, --file string   наименование файла для скачивания с сервера (Обязательный)
+  -m, --masterPass string   Пароль для шифрования (Обязательный)
+```
+
+### Скачивание файла
+Команда: `file-delete`
+
+```
+file-delete -m=secret -f=1GB_file
+
+  -f, --file string   наименование файла для скачивания с сервера (Обязательный)
+  -m, --masterPass string   Пароль для шифрования (Обязательный)
 ```

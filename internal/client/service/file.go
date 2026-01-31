@@ -16,6 +16,7 @@ import (
 
 type FileService interface {
 	AddFile(filePath, masterPass string) error
+	DeleteFile(fileName string) error
 	DownloadFile(fileName string) error
 	ListFile() ([]model.FileAPI, error)
 	InitToken(TokenService)
@@ -144,4 +145,28 @@ func (s *fileService) ListFile() ([]model.FileAPI, error) {
 	}
 
 	return files, nil
+}
+
+func (s *fileService) DeleteFile(fileName string) error {
+	token, err := s.TokenService.GetToken()
+	if err != nil {
+		return err
+	}
+	s.SenderService.SetToken(token)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, response, err := s.SenderService.SendDelete(ctx, "/api/files/"+fileName)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("status code", response.StatusCode)
+
+	if response.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("error delete file, %v", string(body))
+	}
+	return nil
 }
