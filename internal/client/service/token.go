@@ -2,6 +2,7 @@ package service
 
 import "gophkeeper/internal/client/repository"
 
+//go:generate mockgen -source=token.go -destination=../../../mocks/client/service/token_mock.go -package=service
 type TokenService interface {
 	GetToken() (string, error)
 	SetToken(string) error

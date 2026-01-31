@@ -24,6 +24,7 @@ func (c *counterDB) GetCounter(ctx context.Context, typeCounter model.TypeCounte
 	query := "SELECT count FROM counters WHERE user_id = $1 AND type = $2 LIMIT 1"
 	//TODO добавить составной индекс  для user_id и type
 	//TODO добавить транзакции
+	//TODO добавить блокировку строки
 	rows, err := c.DB.Query(ctx, query,
 		userID, typeCounter)
 	if err != nil {

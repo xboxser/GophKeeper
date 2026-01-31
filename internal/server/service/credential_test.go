@@ -123,6 +123,13 @@ func TestDeleteCredential(t *testing.T) {
 			expectError:   errors.New("not userID"),
 			credentialGet: model.CredentialAPI{Login: "login", Password: []byte("password2")},
 		},
+		{
+			name:             "error id increment",
+			incID:            -14,
+			userID:           123,
+			expectError:      errors.New("error db"),
+			credentialGetErr: errors.New("error db"),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -141,7 +148,78 @@ func TestDeleteCredential(t *testing.T) {
 
 			err := credentialService.DeleteCredential(context.Background(), tc.incID, tc.userID)
 			if tc.expectError != nil {
-				assert.ErrorIs(t, err, tc.expectError)
+				assert.Error(t, err, tc.expectError)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestUpdateCredential(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	testCases := []struct {
+		name             string
+		credential       model.CredentialAPI
+		userID           int
+		expectError      error
+		credentialGetErr error
+		credentialGet    model.CredentialAPI
+	}{
+		{
+			name:          "valid 1",
+			credential:    model.CredentialAPI{Login: "login", Password: []byte("password")},
+			userID:        1,
+			expectError:   nil,
+			credentialGet: model.CredentialAPI{Login: "login", Password: []byte("password")},
+		},
+		{
+			name:          "valid 2",
+			credential:    model.CredentialAPI{Login: "login2", Password: []byte("password2")},
+			userID:        2,
+			expectError:   nil,
+			credentialGet: model.CredentialAPI{Login: "login2", Password: []byte("password2")},
+		},
+		{
+			name:          "error user",
+			credential:    model.CredentialAPI{Login: "login4", Password: []byte("password2")},
+			userID:        -123,
+			expectError:   errors.New("not userID"),
+			credentialGet: model.CredentialAPI{Login: "login4", Password: []byte("password2")},
+		},
+		{
+			name:             "error user",
+			credential:       model.CredentialAPI{Login: "login4", Password: []byte("password2")},
+			userID:           -123,
+			expectError:      errors.New("not userID"),
+			credentialGet:    model.CredentialAPI{},
+			credentialGetErr: model.ErrCredentialNotFound,
+		},
+		{
+			name:             "error user",
+			credential:       model.CredentialAPI{Login: "login4", Password: []byte("password2")},
+			userID:           456,
+			expectError:      model.ErrCredentialNotFound,
+			credentialGet:    model.CredentialAPI{},
+			credentialGetErr: model.ErrCredentialNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			mockRepo := mock_rep.NewMockCredentialRepository(ctrl)
+			mockRepo.EXPECT().GetCredential(gomock.Any(), gomock.Any(), tc.userID).Return(tc.credentialGet, tc.credentialGetErr)
+			if tc.credentialGetErr == nil {
+				mockRepo.EXPECT().UpdateCredential(gomock.Any(), tc.credential, tc.userID).Return(tc.expectError)
+			}
+
+			credentialService := NewCredentialService(mockRepo)
+
+			err := credentialService.UpdateCredential(context.Background(), tc.credential, tc.userID)
+			if tc.expectError != nil {
+				assert.Error(t, err, tc.expectError)
 			} else {
 				assert.NoError(t, err)
 			}

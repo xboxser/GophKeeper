@@ -91,7 +91,6 @@ func (ch *CardHandler) GetCommands() []*cobra.Command {
 }
 
 func (ch *CardHandler) deleteCardRun(cmd *cobra.Command, _ []string) {
-	// TODO добавить удаление карты по ее номеру
 	masterPass, err := cmd.Flags().GetString("masterPass")
 	if err != nil || masterPass == "" {
 		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")

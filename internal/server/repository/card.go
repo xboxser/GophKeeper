@@ -7,6 +7,7 @@ import (
 	"gophkeeper/internal/server/db"
 )
 
+//go:generate mockgen -source=card.go -destination=../../../mocks/server/repository/card_mock.go -package=repository
 type CardRepository interface {
 	// AddCard - Добавить карту
 	AddCard(ctx context.Context, card model.CardAPI, userID int) error

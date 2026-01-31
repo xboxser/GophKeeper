@@ -12,6 +12,7 @@ import (
 	"github.com/cheggaaa/pb/v3"
 )
 
+//go:generate mockgen -source=file.go -destination=../../../mocks/client/repository/file_mock.go -package=repository
 type FileRepository interface {
 	// LoadFile - скачиваем на клиент файл с сервера
 	DownloadFile(ctx context.Context, response *http.Response) error

@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+//go:generate mockgen -source=session.go -destination=../../../mocks/server/repository/session_mock.go -package=repository
 type SessionRepository interface {
 	GetSession(ctx context.Context, code string) (model.Session, error)
 	AddSession(ctx context.Context, session model.Session) error

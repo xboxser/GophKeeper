@@ -11,6 +11,7 @@ import (
 	"net/http"
 )
 
+//go:generate mockgen -source=sender.go -destination=../../../mocks/client/service/sender_mock.go -package=service
 type SenderService interface {
 	//TODO причесать весь этот звернец методов, кучу дублирующего кода
 	SendDelete(context.Context, string) ([]byte, *http.Response, error)
