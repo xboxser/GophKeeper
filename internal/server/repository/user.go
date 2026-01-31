@@ -34,11 +34,14 @@ func (u *UserDB) RegisterUser(ctx context.Context, apiUser model.APIUser) (int, 
 		return 0, err
 	}
 
+	tx, err := u.DB.Begin(ctx)
+	defer tx.Rollback(ctx)
+
 	// Регистрируем пользователя и пытаемся получить его ID
 	userID := 0
 	query := `INSERT INTO users (login, password, code) VALUES ($1, $2, $3) RETURNING id`
 
-	rows, err := u.DB.Query(ctx, query, apiUser.Login, string(hashedPassword), apiUser.Code)
+	rows, err := tx.Query(ctx, query, apiUser.Login, string(hashedPassword), apiUser.Code)
 	if err != nil {
 		return 0, err
 	}
@@ -57,11 +60,11 @@ func (u *UserDB) RegisterUser(ctx context.Context, apiUser model.APIUser) (int, 
 	}
 
 	// При регистрации пользователя, создаем счетчики
-	err = u.CounterRepository.IncrementCounter(ctx, model.CounterCard, userID)
+	err = u.CounterRepository.IncrementCounter(tx, ctx, model.CounterCard, userID)
 	if err != nil {
 		return 0, err
 	}
-	err = u.CounterRepository.IncrementCounter(ctx, model.CounterCredential, userID)
+	err = u.CounterRepository.IncrementCounter(tx, ctx, model.CounterCredential, userID)
 	if err != nil {
 		return 0, err
 	}

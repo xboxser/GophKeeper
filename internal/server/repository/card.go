@@ -33,21 +33,26 @@ func NewCardDB(db db.DB, c CounterRepository) *CardDB {
 }
 
 func (c *CardDB) AddCard(ctx context.Context, card model.CardAPI, userID int) error {
+	tx, err := c.DB.Begin(ctx)
+	defer tx.Rollback(ctx)
 
-	count, err := c.CounterRepository.GetCounter(ctx, model.CounterCard, userID)
+	count, err := c.CounterRepository.GetCounter(tx, ctx, model.CounterCard, userID)
 	if err != nil {
 		return errors.Join(err, errors.New("error get counter"))
 	}
+
 	query := `INSERT INTO bank_cards (user_id, title, number_enc, expiry_enc, cvv_enc, card_holder_name, last4, inc_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
-	_, err = c.DB.Exec(ctx, query, userID, card.Title, card.Number, card.Expiry, card.CVV, card.CardHolder, card.Last4, count)
+	_, err = tx.Exec(ctx, query, userID, card.Title, card.Number, card.Expiry, card.CVV, card.CardHolder, card.Last4, count)
 	if err != nil {
 		return errors.Join(err, errors.New("error add card"))
 	}
 
-	err = c.CounterRepository.IncrementCounter(ctx, model.CounterCard, userID)
+	err = c.CounterRepository.IncrementCounter(tx, ctx, model.CounterCard, userID)
 	if err != nil {
 		return errors.Join(err, errors.New("error inc counter"))
 	}
+
+	tx.Commit(ctx)
 	return nil
 }
 

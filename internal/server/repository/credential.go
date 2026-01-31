@@ -30,21 +30,26 @@ func NewCredentialDB(db db.DB, c CounterRepository) *CredentialDB {
 }
 
 func (c *CredentialDB) AddCredential(ctx context.Context, credential model.CredentialAPI, userID int) error {
-	count, err := c.CounterRepository.GetCounter(ctx, model.CounterCredential, userID)
+	tx, err := c.DB.Begin(ctx)
+	defer tx.Rollback(ctx)
+
+	count, err := c.CounterRepository.GetCounter(tx, ctx, model.CounterCredential, userID)
 	if err != nil {
 		return errors.Join(err, errors.New("error get counter"))
 	}
 
 	query := `INSERT INTO credentials (user_id, login, password, inc_id) VALUES ($1, $2, $3, $4)`
-	_, err = c.DB.Exec(ctx, query, userID, credential.Login, credential.Password, count)
+	_, err = tx.Exec(ctx, query, userID, credential.Login, credential.Password, count)
 	if err != nil {
 		return err
 	}
 
-	err = c.CounterRepository.IncrementCounter(ctx, model.CounterCredential, userID)
+	err = c.CounterRepository.IncrementCounter(tx, ctx, model.CounterCredential, userID)
 	if err != nil {
 		return errors.Join(err, errors.New("error inc counter"))
 	}
+
+	tx.Commit(ctx)
 	return nil
 }
 

@@ -18,6 +18,7 @@ import (
 
 type DB interface {
 	Close()
+	Begin(ctx context.Context) (pgx.Tx, error)
 	Query(context.Context, string, ...any) (pgx.Rows, error)
 	Exec(context.Context, string, ...any) (pgconn.CommandTag, error)
 }
@@ -69,6 +70,10 @@ func (db *DBPgx) Query(ctx context.Context, sql string, args ...any) (pgx.Rows, 
 // Exec - для запросов без возвращаемой информации
 func (db *DBPgx) Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
 	return db.pool.Exec(ctx, sql, args...)
+}
+
+func (db *DBPgx) Begin(ctx context.Context) (pgx.Tx, error) {
+	return db.pool.Begin(ctx)
 }
 
 //go:embed migrations/*.sql
