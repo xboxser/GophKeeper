@@ -1,6 +1,12 @@
 package repository
 
 import (
+	"bytes"
+	"context"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -47,6 +53,33 @@ func TestGetFileName(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestDownloadFile(t *testing.T) {
+	tempDir := t.TempDir()
+	repo := NewFileRepository(tempDir + "/")
+
+	// Подготовим фейковый HTTP-ответ
+	content := []byte("test file content")
+	response := &http.Response{
+		Body:          io.NopCloser(bytes.NewReader(content)),
+		ContentLength: int64(len(content)),
+		Header:        make(http.Header),
+	}
+	response.Header.Set("Content-Disposition", "attachment; filename=test.txt")
+
+	err := repo.DownloadFile(context.Background(), response)
+
+	require.NoError(t, err)
+
+	// проверяем, что файл был создан
+	filePath := filepath.Join(tempDir, "test.txt")
+	require.FileExists(t, filePath)
+
+	// проверяем содержимое файла
+	data, err := os.ReadFile(filePath)
+	require.NoError(t, err)
+	require.Equal(t, content, data)
 }
 
 func TestNewFileRepository(t *testing.T) {

@@ -1,11 +1,13 @@
 package service
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"gophkeeper/internal/model"
 	"gophkeeper/mocks/client/repository"
 	"gophkeeper/mocks/client/service"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -25,11 +27,9 @@ func TestAddFile(t *testing.T) {
 	mockRepo := repository.NewMockFileRepository(ctrl)
 	mockEncryption := service.NewMockEncryptionService(ctrl)
 
-	// Создаем сервис
 	svc := NewFileService(mockRepo, mockSender, mockEncryption)
 	svc.InitToken(mockToken)
 
-	// Создаем временный файл для теста
 	tempFile, err := os.CreateTemp("", "test_file")
 	require.NoError(t, err)
 	testFilePath := tempFile.Name()
@@ -37,10 +37,8 @@ func TestAddFile(t *testing.T) {
 	tempFile.WriteString("test content")
 	tempFile.Close()
 
-	// Получаем базовое имя файла
 	fileName := filepath.Base(testFilePath)
 
-	// Устанавливаем ожидания
 	mockToken.EXPECT().GetToken().Return("token", nil)
 	mockSender.EXPECT().SetToken("token")
 	mockEncryption.EXPECT().SetMasterPass("master-pass")
@@ -50,13 +48,71 @@ func TestAddFile(t *testing.T) {
 		nil,
 	)
 
-	// Вызываем метод
 	err = svc.AddFile(testFilePath, "master-pass")
+
+	require.NoError(t, err)
+}
+
+func TestDownloadFile(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Создаем моки
+	mockSender := service.NewMockSenderService(ctrl)
+	mockToken := service.NewMockTokenService(ctrl)
+	mockRepo := repository.NewMockFileRepository(ctrl)
+
+	service := NewFileService(mockRepo, mockSender, nil)
+	service.InitToken(mockToken)
+
+	fileName := "test-file.txt"
+
+	mockToken.EXPECT().GetToken().Return("token", nil)
+	mockSender.EXPECT().SetToken("token")
+
+	httpResponse := &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(bytes.NewReader([]byte("file content"))),
+	}
+
+	mockSender.EXPECT().SendGetFile(gomock.Any(), "/api/files/download/"+fileName).Return(httpResponse, nil)
+	mockRepo.EXPECT().DownloadFile(gomock.Any(), httpResponse).Return(nil)
+
+	err := service.DownloadFile(fileName)
+
+	require.NoError(t, err)
+}
+
+func TestDeleteFile(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Создаем моки
+	mockSender := service.NewMockSenderService(ctrl)
+	mockToken := service.NewMockTokenService(ctrl)
+	mockRepo := repository.NewMockFileRepository(ctrl)
+
+	// Создаем сервис
+	service := NewFileService(mockRepo, mockSender, nil)
+	service.InitToken(mockToken)
+
+	fileName := "test-file.txt"
+
+	// Подготавливаем ожидания для успешного сценария
+	mockToken.EXPECT().GetToken().Return("token", nil)
+	mockSender.EXPECT().SetToken("token")
+	mockSender.EXPECT().SendDelete(gomock.Any(), "/api/files/"+fileName).Return(
+		[]byte("success"),
+		&http.Response{StatusCode: http.StatusNoContent},
+		nil,
+	)
+
+	// Вызываем метод
+	err := service.DeleteFile(fileName)
 
 	// Проверяем результат
 	require.NoError(t, err)
 }
-
 func TestListFile(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
