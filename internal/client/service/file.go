@@ -14,6 +14,7 @@ import (
 	"github.com/cheggaaa/pb/v3"
 )
 
+//go:generate mockgen -source=file.go -destination=../../../mocks/client/services/file_mock.go -package=service
 type FileService interface {
 	AddFile(filePath, masterPass string) error
 	DeleteFile(fileName string) error

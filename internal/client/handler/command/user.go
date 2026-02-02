@@ -50,6 +50,7 @@ func (u *UserHandler) GetCommands() []*cobra.Command {
 		Example: `  todo master --masterPass "password"`,
 		Run:     u.masterRun,
 	}
+	
 	masterCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
 	masterCmd.MarkFlagRequired("masterPass")
 

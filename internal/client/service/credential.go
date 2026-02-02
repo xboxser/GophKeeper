@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+//go:generate mockgen -source=credential.go -destination=../../../mocks/client/services/credential_mock.go -package=service
 type CredentialService interface {
 	AddCredential(login, password, masterPass string) error
 	DeleteCredential(id string) error

@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+//go:generate mockgen -source=card.go -destination=../../../mocks/client/service/card_mock.go -package=service
 type CardService interface {
 	AddCard(model.Card) error
 	DeleteCard(string) error
