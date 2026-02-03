@@ -1,12 +1,14 @@
 package route
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"gophkeeper/internal/model"
 	"gophkeeper/internal/server/handler/middleware"
 	"gophkeeper/internal/server/service"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -153,13 +155,22 @@ func (f *FileHandler) downloadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	osFile, stat, err := f.FileService.DownloadFile(file)
+	if file.Status != model.StatusFileOk {
+		http.Error(w, model.ErrFileIsBlock.Error(), http.StatusLocked)
+		return
+	}
+
+	osFile, stat, err := f.FileService.DownloadFile(r.Context(), file)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	defer osFile.Close()
+	defer func() {
+		osFile.Close()
+		ctxBlock, cancel := context.WithTimeout(context.Background(), time.Second)
+		f.FileService.StopDownloadFile(ctxBlock, file)
+		cancel()
+	}()
 
 	w.Header().Set("Content-Disposition", "attachment; filename=\""+filename+"\"")
 	w.Header().Set("Accept-Ranges", "bytes")

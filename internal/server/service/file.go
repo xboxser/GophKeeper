@@ -9,10 +9,13 @@ import (
 
 type FileService interface {
 	AddFile(ctx context.Context, file model.FileAdd) error
-	DownloadFile(file model.File) (*os.File, os.FileInfo, error)
+	DownloadFile(ctx context.Context, file model.File) (*os.File, os.FileInfo, error)
 	DeleteFile(ctx context.Context, file model.File) error
+
 	GetFileForName(ctx context.Context, userID int, fileName string) (model.File, error)
 	ListFile(ctx context.Context, userID int) ([]model.FileAPI, error)
+	// StopDownloadFile - устанавливаем статус ok, т.к. скачивание прекратилось
+	StopDownloadFile(ctx context.Context, file model.File) error
 }
 
 type fileService struct {
@@ -37,11 +40,18 @@ func (fs *fileService) ListFile(ctx context.Context, userID int) ([]model.FileAP
 	return fs.FileRepository.GetList(ctx, userID)
 }
 
-func (fs *fileService) DownloadFile(file model.File) (*os.File, os.FileInfo, error) {
+func (fs *fileService) DownloadFile(ctx context.Context, file model.File) (*os.File, os.FileInfo, error) {
 	// Проверка файла
 	f, err := os.Open(file.FilePath)
 	if err != nil {
 		return nil, nil, model.ErrFileNotFound
+	}
+
+	// Устанавливаем статус что файл скачивает
+	err = fs.FileRepository.DownloadFile(ctx, file.UserID, file.Name)
+	if err != nil {
+		defer f.Close()
+		return nil, nil, model.ErrFileUpdate
 	}
 
 	stat, err := f.Stat()
@@ -54,6 +64,9 @@ func (fs *fileService) DownloadFile(file model.File) (*os.File, os.FileInfo, err
 }
 
 func (fs *fileService) DeleteFile(ctx context.Context, file model.File) error {
-
 	return fs.FileRepository.DeleteFile(ctx, file.UserID, file.Name)
+}
+
+func (fs *fileService) StopDownloadFile(ctx context.Context, file model.File) error {
+	return fs.FileRepository.DeleteBlockFile(ctx, file.UserID, file.Name)
 }

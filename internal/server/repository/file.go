@@ -20,6 +20,7 @@ type FileRepository interface {
 	// DeleteAllBlocks - удаляет все блокировки файлов
 	DeleteAllBlocks(ctx context.Context) error
 	DeleteBlockFile(ctx context.Context, userID int, fileName string) error
+	DownloadFile(ctx context.Context, userID int, fileName string) error
 	DeleteFile(ctx context.Context, userID int, fileName string) error
 
 	// GetFileForName - возвращает информацию по файлу
@@ -126,6 +127,17 @@ func (f *fileRepository) DeleteAllBlocks(ctx context.Context) error {
 	}
 	if info.IsDir() {
 		err = os.RemoveAll(f.UploadPathTmp)
+	}
+
+	return err
+}
+
+// DownloadFile - устанавливаем признак скачивания файла
+func (f *fileRepository) DownloadFile(ctx context.Context, userID int, fileName string) error {
+	query := `UPDATE files SET status = $1, uploaded_at=CURRENT_TIMESTAMP WHERE user_id = $2 AND name = $3`
+	_, err := f.DB.Exec(ctx, query, model.StatusFileDown, userID, fileName)
+	if err != nil {
+		return err
 	}
 
 	return err

@@ -12,6 +12,7 @@ var (
 	ErrFileSave = errors.New("error save file")
 	// ErrFileIsBlock - файл заблокирован
 	ErrFileIsBlock = errors.New("file is block")
+	ErrFileUpdate  = errors.New("error file update")
 )
 
 // StatusFile - статус файла
