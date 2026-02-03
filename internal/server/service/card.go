@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+//go:generate mockgen -source=card.go -destination=../../../mocks/server/service/card_mock.go -package=service
 type CardService interface {
 	AddCard(ctx context.Context, card *model.CardAPI, userID int) error
 	DeleteCard(ctx context.Context, id string, userID int) error

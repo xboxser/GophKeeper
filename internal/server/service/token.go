@@ -15,6 +15,7 @@ type Claims struct {
 	User string
 }
 
+//go:generate mockgen -source=token.go -destination=../../../mocks/server/service/token_mock.go -package=service
 type TokenService interface {
 	BuildJWTString(model.Session) (string, error)
 	GetUser(tokenString string) (string, error)

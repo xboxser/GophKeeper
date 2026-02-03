@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
+//go:generate mockgen -source=session.go -destination=../../../mocks/server/service/session_mock.go -package=service
 type SessionService interface {
 	GetSession(ctx context.Context, code string) (model.TokenAuth, error)
 	AddSession(ctx context.Context, tokenAuth model.TokenAuth) (model.Session, error)

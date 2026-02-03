@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+//go:generate mockgen -source=counter.go -destination=../../../mocks/server/repository/counter_mock.go -package=repository
 type CounterRepository interface {
 	GetCounter(tx pgx.Tx, ctx context.Context, typeCounter model.TypeCounter, userID int) (int, error)
 	IncrementCounter(tx pgx.Tx, ctx context.Context, typeCounter model.TypeCounter, userID int) error

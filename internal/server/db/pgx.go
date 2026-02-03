@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+//go:generate mockgen -source=pgx.go -destination=../../../mocks/server/db/db_mock.go -package=db
 type DB interface {
 	Close()
 	Begin(ctx context.Context) (pgx.Tx, error)

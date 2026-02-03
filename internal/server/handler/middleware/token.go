@@ -13,6 +13,7 @@ type ContextKey string
 
 const UserIDContextKey ContextKey = "userID"
 
+//go:generate mockgen -source=token.go -destination=../../../../mocks/server/middleware/token_mock.go -package=middleware
 type TokenMiddleware interface {
 	CheckToken(http.Handler) http.Handler
 	GetUserRequest(*http.Request) model.TokenAuth

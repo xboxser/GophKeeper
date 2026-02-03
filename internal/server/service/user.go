@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+//go:generate mockgen -source=user.go -destination=../../../mocks/server/service/user_mock.go -package=service
 type UserService interface {
 	Register(context.Context, model.APIUser) (string, error)
 	Login(context.Context, model.APIUser) (string, error)
