@@ -47,7 +47,7 @@ func main() {
 	fileService.InitToken(tokenService)
 	fileCommand := command.NewFileHandler(fileService, userService)
 
-	cli := handler.NewCli()
+	cli := handler.NewCli(buildVersion)
 	cli.AddCommand(userCommand)
 	cli.AddCommand(credentialCommand)
 	cli.AddCommand(cardCommand)

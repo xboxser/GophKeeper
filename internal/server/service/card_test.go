@@ -59,6 +59,45 @@ func TestGetCard(t *testing.T) {
 
 }
 
+func TestAddCard(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockCardRepo := repository.NewMockCardRepository(ctrl)
+	cardService := NewCardService(mockCardRepo)
+
+	userID := 123
+	card := &model.CardAPI{
+		ID:         1,
+		Title:      "Test Card",
+		Number:     []byte("1234567890123456"),
+		Expiry:     []byte("12/25"),
+		CVV:        []byte("123"),
+		CardHolder: []byte("John Doe"),
+		Last4:      "3456",
+		IncID:      1,
+	}
+
+	t.Run("successful add card", func(t *testing.T) {
+		mockCardRepo.EXPECT().AddCard(gomock.Any(), *card, userID).Return(nil)
+
+		err := cardService.AddCard(context.Background(), card, userID)
+
+		require.NoError(t, err)
+	})
+
+	t.Run("error adding card", func(t *testing.T) {
+		expectedError := errors.New("database error")
+
+		mockCardRepo.EXPECT().AddCard(gomock.Any(), *card, userID).Return(expectedError)
+
+		err := cardService.AddCard(context.Background(), card, userID)
+
+		assert.Error(t, err)
+		assert.Equal(t, expectedError, err)
+	})
+}
+
 func TestDeleteCard(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

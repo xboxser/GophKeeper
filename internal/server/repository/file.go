@@ -13,6 +13,7 @@ import (
 	"gophkeeper/internal/server/db"
 )
 
+//go:generate mockgen -source=file.go -destination=../../../mocks/server/repository/file_mock.go -package=repository
 type FileRepository interface {
 	// AddFile - добавляет файл в хранилище
 	AddFile(ctx context.Context, file model.FileAdd) error

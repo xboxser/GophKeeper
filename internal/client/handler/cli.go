@@ -10,14 +10,13 @@ type Cli struct {
 	ClientCmd *cobra.Command
 }
 
-func NewCli() *Cli {
+func NewCli(buildVersion string) *Cli {
 
 	clientCmd := &cobra.Command{
-		Use:   "todo",
-		Short: "Клиент для работы с gophkeeper",
-		Long:  "Клиент для работы с gophkeeper",
-		// TODO добавить версию
-		Version: "1.0.0",
+		Use:     "todo",
+		Short:   "Клиент для работы с gophkeeper",
+		Long:    "Клиент для работы с gophkeeper",
+		Version: buildVersion,
 	}
 
 	return &Cli{ClientCmd: clientCmd}
