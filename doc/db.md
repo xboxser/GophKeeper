@@ -53,6 +53,6 @@ erDiagram
 	credentials}|--||users:"  "
     bank_cards}|--||users:"  "
     files}|--||users:"  "
-    users_counters}|--||users:"  "
+    counters}|--||users:"  "
 
 ```
