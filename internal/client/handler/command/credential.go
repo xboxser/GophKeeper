@@ -1,0 +1,207 @@
+package command
+
+import (
+	"fmt"
+	"gophkeeper/internal/client/service"
+
+	"github.com/spf13/cobra"
+)
+
+type CredentialHandler struct {
+	CredentialService service.CredentialService
+	UserMasterService service.UserMasterService
+}
+
+func NewCredentialHandler(credentialService service.CredentialService, u service.UserMasterService) *CredentialHandler {
+	return &CredentialHandler{
+		CredentialService: credentialService,
+		UserMasterService: u,
+	}
+}
+
+func (ch *CredentialHandler) GetCommands() []*cobra.Command {
+
+	addCredentialCmd := &cobra.Command{
+		Use:     "credential-add",
+		Short:   "Добавить новые учетные записи",
+		Example: `  todo credential-add --login "userName" --password "password" --masterPass "password"`,
+		Run:     ch.addCredentialRun,
+	}
+	addCredentialCmd.Flags().StringP("login", "l", "", "Логин (обязательный)")
+	addCredentialCmd.MarkFlagRequired("login")
+	addCredentialCmd.Flags().StringP("password", "p", "", "Пароль (обязательный)")
+	addCredentialCmd.MarkFlagRequired("password")
+	addCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	addCredentialCmd.MarkFlagRequired("masterPass")
+
+	getCredentialCmd := &cobra.Command{
+		Use:     "credential-get",
+		Short:   "Получить список учетных данных",
+		Example: `  todo credential-get --masterPass "password"`,
+		Run:     ch.getCredentialRun,
+	}
+	getCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	getCredentialCmd.MarkFlagRequired("masterPass")
+
+	deleteCredentialCmd := &cobra.Command{
+		Use:     "credential-del",
+		Short:   "Получить список учетных данных",
+		Example: `  todo credential-del --masterPass "password" --login "userName"`,
+		Run:     ch.deleteCredentialRun,
+	}
+	deleteCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	deleteCredentialCmd.MarkFlagRequired("masterPass")
+	deleteCredentialCmd.Flags().StringP("id", "i", "", "Номер  записи (обязательный)")
+	deleteCredentialCmd.MarkFlagRequired("id")
+
+	updateCredentialCmd := &cobra.Command{
+		Use:     "credential-update",
+		Short:   "Обновление учетной записи",
+		Example: `  todo credential-update --login "userName" --password "password" --masterPass "password"`,
+		Run:     ch.updateCredentialRun,
+	}
+	updateCredentialCmd.Flags().StringP("login", "l", "", "Логин (обязательный)")
+	updateCredentialCmd.MarkFlagRequired("login")
+	updateCredentialCmd.Flags().StringP("password", "p", "", "Пароль (обязательный)")
+	updateCredentialCmd.MarkFlagRequired("password")
+	updateCredentialCmd.Flags().StringP("masterPass", "m", "", "Пароль для шифрования (Обязательный)")
+	updateCredentialCmd.MarkFlagRequired("masterPass")
+	updateCredentialCmd.Flags().StringP("id", "i", "", "Номер  записи (обязательный)")
+	updateCredentialCmd.MarkFlagRequired("id")
+
+	return []*cobra.Command{
+		addCredentialCmd,
+		getCredentialCmd,
+		deleteCredentialCmd,
+		updateCredentialCmd,
+	}
+}
+
+func (ch *CredentialHandler) addCredentialRun(cmd *cobra.Command, _ []string) {
+	login, err := cmd.Flags().GetString("login")
+	if err != nil || login == "" {
+		fmt.Println("❌ Ошибка: укажите логин (--login или -l)")
+		return
+	}
+	password, err := cmd.Flags().GetString("password")
+	if err != nil || password == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--password или -p)")
+		return
+	}
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+
+	err = ch.UserMasterService.Master(masterPass)
+	if err != nil {
+		fmt.Println("❌ Ошибка проверки мастер пароля:", err)
+		return
+	}
+
+	err = ch.CredentialService.AddCredential(login, password, masterPass)
+
+	if err != nil {
+		fmt.Println("❌ Ошибка:", err)
+		return
+	}
+
+	fmt.Printf("✅ Запись успешно добавлена\n")
+}
+
+func (ch *CredentialHandler) deleteCredentialRun(cmd *cobra.Command, _ []string) {
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+
+	err = ch.UserMasterService.Master(masterPass)
+	if err != nil {
+		fmt.Println("❌ Ошибка проверки мастер пароля:", err)
+		return
+	}
+
+	id, err := cmd.Flags().GetString("id")
+	if err != nil || id == "" {
+		fmt.Println("❌ Ошибка: номер записи (--id или -i)")
+		return
+	}
+
+	err = ch.CredentialService.DeleteCredential(id)
+
+	if err != nil {
+		fmt.Println("❌ Ошибка:", err)
+		return
+	}
+
+	fmt.Printf("✅ Запись успешно удалена\n")
+}
+
+func (ch *CredentialHandler) getCredentialRun(cmd *cobra.Command, _ []string) {
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+
+	credentials, err := ch.CredentialService.GetCredentials(masterPass)
+
+	if err != nil {
+		fmt.Println("❌ Ошибка:", err)
+		return
+	}
+
+	if len(credentials) == 0 {
+		fmt.Println("📦 Нет сохраненных учетных данных")
+		return
+	}
+
+	fmt.Printf("🔐 Найдено %d учетных записей:\n\n", len(credentials))
+
+	for _, cred := range credentials {
+		fmt.Printf("📋 Запись #%d\n", cred.ID)
+		fmt.Printf("   Логин: %s\n", cred.Login)
+		fmt.Printf("   Пароль: %s\n", string(cred.Password))
+		fmt.Println()
+	}
+}
+
+func (ch *CredentialHandler) updateCredentialRun(cmd *cobra.Command, _ []string) {
+	login, err := cmd.Flags().GetString("login")
+	if err != nil || login == "" {
+		fmt.Println("❌ Ошибка: укажите логин (--login или -l)")
+		return
+	}
+	password, err := cmd.Flags().GetString("password")
+	if err != nil || password == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--password или -p)")
+		return
+	}
+	masterPass, err := cmd.Flags().GetString("masterPass")
+	if err != nil || masterPass == "" {
+		fmt.Println("❌ Ошибка: укажите пароль (--masterPass или -m)")
+		return
+	}
+	id, err := cmd.Flags().GetString("id")
+	if err != nil || id == "" {
+		fmt.Println("❌ Ошибка: номер записи (--id или -i)")
+		return
+	}
+
+	err = ch.UserMasterService.Master(masterPass)
+	if err != nil {
+		fmt.Println("❌ Ошибка проверки мастер пароля:", err)
+		return
+	}
+
+	err = ch.CredentialService.UpdateCredential(login, password, masterPass, id)
+
+	if err != nil {
+		fmt.Println("❌ Ошибка:", err)
+		return
+	}
+
+	fmt.Printf("✅ Запись успешно обновлена\n")
+}

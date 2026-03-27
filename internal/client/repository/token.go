@@ -1,0 +1,44 @@
+package repository
+
+import (
+	"fmt"
+	"os"
+)
+
+//go:generate mockgen -source=token.go -destination=../../../mocks/client/repository/token_mock.go -package=repository
+type TokenRepository interface {
+	GetToken() (string, error)
+	SetToken(string) error
+}
+
+type tokenRepository struct {
+	FileName string
+}
+
+func NewTokenRepository(fileName string) *tokenRepository {
+	return &tokenRepository{FileName: fileName}
+}
+
+func (t *tokenRepository) GetToken() (string, error) {
+	data, err := os.ReadFile(t.FileName)
+	if err != nil {
+		return "", fmt.Errorf("Не удалось прочитать токен: %v", err)
+	}
+	token := string(data)
+
+	if token == "" {
+		return "", fmt.Errorf("Пустой  токен, требуется авторизация")
+	}
+
+	return token, nil
+}
+
+// SetToken - сохраняем токен пользователя, файл каждый раз перезаписывается
+func (t *tokenRepository) SetToken(token string) error {
+	err := os.WriteFile(t.FileName, []byte(token), 0600) // 0600 только владелец может читать и писать
+	if err != nil {
+		return fmt.Errorf("Не удалось записать токен в файл: %v", err)
+	}
+	return nil
+
+}

@@ -1,0 +1,2 @@
+-- Empty down migration for version 0
+-- This file exists to satisfy the migrate tool's requirement for down migrations

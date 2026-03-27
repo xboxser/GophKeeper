@@ -1,0 +1,9 @@
+.vscode
+*.pem
+
+coverage.html
+
+cmd/client/token
+test_file
+upload
+upload_client

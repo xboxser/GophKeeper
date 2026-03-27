@@ -1,0 +1,20 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: my-postgres
+    environment:
+      # вывел только для учебного примера
+      POSTGRES_USER: keeper
+      POSTGRES_PASSWORD: YB4df*5f1f)8g92
+      POSTGRES_DB: GoKeeperDB
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  pgdata: 
